@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check role
+    function hasRole(role) {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    match /users/{userId} {
+      // Users can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+      // Admins can read/write all user profiles
+      allow read, write: if hasRole('admin');
+    }
+
+    match /reports/{reportId} {
+      // Reporter: Create, Read Own
+      allow create: if request.auth != null; 
+      allow read: if request.auth != null && resource.data.reporterId == request.auth.uid;
+      
+      // Maintainer: Read Assigned, Update Status to 'in_progress' or 'closed'
+      allow read: if hasRole('maintainer') && resource.data.assignedTo == request.auth.uid;
+      allow update: if hasRole('maintainer') 
+                    && resource.data.assignedTo == request.auth.uid
+                    && (request.resource.data.status == 'in_progress' || request.resource.data.status == 'closed')
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']);
+
+      // Manager: Read All, Update 'assignedTo' (assign), Update Status to 'archived'
+      allow read: if hasRole('manager');
+      allow update: if hasRole('manager')
+                    && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['assignedTo', 'status', 'updatedAt']));
+                    
+      // Admin: Full Access
+      allow read, write: if hasRole('admin');
+    }
+  }
+}

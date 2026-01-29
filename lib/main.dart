@@ -1,0 +1,58 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart'; 
+import 'theme.dart';
+import 'services/auth_service.dart';
+import 'services/report_service.dart';
+import 'services/user_service.dart';
+import 'providers/theme_provider.dart';
+import 'ui/role_wrapper.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+     await Firebase.initializeApp(
+       options: DefaultFirebaseOptions.currentPlatform,
+     );
+  } catch (e) {
+    print("Warning: Firebase initialization failed. Error: $e");
+    // On Web, we cannot call initializeApp() without options.
+    // We will proceed without Firebase, which means Auth/Firestore calls will fail.
+    // This allows the UI to at least render for verification.
+  }
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<ReportService>(create: (_) => ReportService()),
+        Provider<UserService>(create: (_) => UserService()),
+      ],
+      child: const FixItProApp(),
+    ),
+  );
+}
+
+class FixItProApp extends StatelessWidget {
+  const FixItProApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'FixIt-Pro',
+          theme: appTheme,
+          darkTheme: appDarkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const RoleWrapper(),
+        );
+      },
+    );
+  }
+}
+
+
