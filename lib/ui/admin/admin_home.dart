@@ -16,6 +16,7 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   String? _organizationId;
+  String _filterRole = 'all';
   bool _isLoading = true;
 
   @override
@@ -88,6 +89,24 @@ class _AdminHomeState extends State<AdminHome> {
           ),
           const SizedBox(width: 16),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildFilterChip('All Users', 'all', Icons.people_rounded),
+                _buildFilterChip('Admins', 'admin', Icons.admin_panel_settings_rounded),
+                _buildFilterChip('Managers', 'manager', Icons.manage_accounts_rounded),
+                _buildFilterChip('Maintainers', 'maintainer', Icons.engineering_rounded),
+                _buildFilterChip('Reporters', 'reporter', Icons.person_pin_circle_rounded),
+              ],
+            ),
+          ),
+        ),
       ),
       body: ResponsiveCenter(
         maxWidth: 1000,
@@ -100,7 +119,10 @@ class _AdminHomeState extends State<AdminHome> {
             if (snapshot.hasError) {
               return Center(child: Text("Error: ${snapshot.error}"));
             }
-            final users = snapshot.data ?? [];
+            final allUsers = snapshot.data ?? [];
+            final users = _filterRole == 'all' 
+                ? allUsers 
+                : allUsers.where((u) => u.role == _filterRole).toList();
             
             return ListView.builder(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
@@ -122,6 +144,40 @@ class _AdminHomeState extends State<AdminHome> {
         },
         icon: const Icon(Icons.person_add_rounded),
         label: const Text("Add User"),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _filterRole == value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: FilterChip(
+        avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.5)),
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (_filterRole != value) {
+            setState(() {
+              _filterRole = value;
+            });
+          }
+        },
+        showCheckmark: false,
+        backgroundColor: Colors.transparent,
+        selectedColor: colorScheme.primary,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
+        ),
       ),
     );
   }
