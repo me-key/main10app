@@ -7,6 +7,8 @@ import '../../services/report_service.dart';
 import '../widgets/responsive_center.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'create_report_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 
 class ReporterHome extends StatefulWidget {
   const ReporterHome({super.key});
@@ -54,6 +56,8 @@ class _ReporterHomeState extends State<ReporterHome> {
     }
 
     final authService = Provider.of<AuthService>(context, listen: false);
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -63,17 +67,23 @@ class _ReporterHomeState extends State<ReporterHome> {
             Text(
               authService.impersonatedProfile != null 
                   ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
-                  : "My Dashboard",
+                  : l10n.get('my_dashboard'),
               style: textTheme.titleLarge,
             ),
             if (authService.impersonatedProfile == null)
               Text(
-                "Overview of your reports",
+                l10n.get('overview_reports'),
                 style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
               ),
           ],
         ),
         actions: [
+          IconButton.filledTonal(
+            onPressed: () => localeProvider.toggleLocale(),
+            icon: Text(localeProvider.locale.languageCode == 'en' ? 'HE' : 'EN', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            tooltip: localeProvider.locale.languageCode == 'en' ? 'עברית' : 'English',
+          ),
+          const SizedBox(width: 8),
           if (authService.impersonatedProfile != null)
              Padding(
                padding: const EdgeInsets.only(right: 8.0),
@@ -88,7 +98,7 @@ class _ReporterHomeState extends State<ReporterHome> {
           IconButton.filledTonal(
             onPressed: () => authService.signOut(), 
             icon: const Icon(Icons.logout_rounded, size: 20),
-            tooltip: "Logout",
+            tooltip: l10n.get('logout'),
           ),
           const SizedBox(width: 16),
         ],
@@ -123,12 +133,12 @@ class _ReporterHomeState extends State<ReporterHome> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        "No reports yet",
+                        l10n.get('no_reports_yet'),
                         style: textTheme.titleLarge,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        "You haven't submitted any maintenance requests yet. Tap the button below to get started.",
+                        l10n.get('no_reports_msg'),
                         style: textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -136,7 +146,7 @@ class _ReporterHomeState extends State<ReporterHome> {
                       FilledButton.icon(
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateReportScreen())),
                         icon: const Icon(Icons.add),
-                        label: const Text("Create First Report"),
+                        label: Text(l10n.get('create_first_report')),
                       ),
                     ],
                   ),
@@ -163,7 +173,7 @@ class _ReporterHomeState extends State<ReporterHome> {
            Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateReportScreen()));
         },
         icon: const Icon(Icons.add),
-        label: const Text("New Report"),
+        label: Text(l10n.get('new_report')),
       ),
     );
   }
@@ -243,7 +253,7 @@ class _ReportCard extends StatelessWidget {
                         _buildInfoItem(
                           context,
                           Icons.person_pin_rounded,
-                          "Assigned",
+                          AppLocalizations.of(context).get('assigned'),
                           color: colorScheme.primary,
                         ),
                     ],
@@ -291,27 +301,27 @@ class _StatusChip extends StatelessWidget {
       case 'open': 
         color = const Color(0xFF3B82F6); // Blue
         icon = Icons.error_outline_rounded;
-        label = 'Open';
+        label = AppLocalizations.of(context).get('open');
         break;
       case 'assigned': 
         color = const Color(0xFF8B5CF6); // Purple
         icon = Icons.assignment_ind_rounded;
-        label = 'Assigned';
+        label = AppLocalizations.of(context).get('assigned');
         break;
       case 'in_progress': 
         color = const Color(0xFFF59E0B); // Amber
         icon = Icons.construction_rounded;
-        label = 'Working';
+        label = AppLocalizations.of(context).get('working');
         break;
       case 'closed': 
         color = const Color(0xFF10B981); // Emerald
         icon = Icons.check_circle_outline_rounded;
-        label = 'Resolved';
+        label = AppLocalizations.of(context).get('resolved');
         break;
       case 'archived': 
         color = const Color(0xFF64748B); // Slate
         icon = Icons.archive_outlined;
-        label = 'Archived';
+        label = AppLocalizations.of(context).get('archived');
         break;
       default: 
         color = Colors.grey; 

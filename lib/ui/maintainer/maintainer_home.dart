@@ -7,6 +7,8 @@ import '../../services/report_service.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'task_detail_screen.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 
 class MaintainerHome extends StatefulWidget {
   const MaintainerHome({super.key});
@@ -55,6 +57,8 @@ class _MaintainerHomeState extends State<MaintainerHome> {
     }
 
     final authService = Provider.of<AuthService>(context, listen: false);
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -64,17 +68,23 @@ class _MaintainerHomeState extends State<MaintainerHome> {
             Text(
               authService.impersonatedProfile != null 
                   ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
-                  : "My Tasks",
+                  : l10n.get('my_tasks'),
               style: textTheme.titleLarge,
             ),
             if (authService.impersonatedProfile == null)
               Text(
-                "Your assigned maintenance work",
+                l10n.get('assigned_work'),
                 style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
               ),
           ],
         ),
         actions: [
+          IconButton.filledTonal(
+            onPressed: () => localeProvider.toggleLocale(),
+            icon: Text(localeProvider.locale.languageCode == 'en' ? 'HE' : 'EN', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            tooltip: localeProvider.locale.languageCode == 'en' ? 'עברית' : 'English',
+          ),
+          const SizedBox(width: 8),
           if (authService.impersonatedProfile != null)
              Padding(
                padding: const EdgeInsets.only(right: 8.0),
@@ -89,7 +99,7 @@ class _MaintainerHomeState extends State<MaintainerHome> {
           IconButton.filledTonal(
             onPressed: () => authService.signOut(), 
             icon: const Icon(Icons.logout_rounded, size: 20),
-            tooltip: "Logout",
+            tooltip: l10n.get('logout'),
           ),
         ],
         bottom: PreferredSize(
@@ -101,11 +111,11 @@ class _MaintainerHomeState extends State<MaintainerHome> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildFilterChip('All Tasks', 'all', Icons.dashboard_rounded),
-                _buildFilterChip('To Do', 'assigned', Icons.assignment_ind_rounded),
-                _buildFilterChip('In Progress', 'in_progress', Icons.construction_rounded),
-                _buildFilterChip('On Hold', 'on_hold', Icons.pause_circle_outline_rounded),
-                _buildFilterChip('Completed', 'closed', Icons.check_circle_outline_rounded),
+                _buildFilterChip(l10n.get('all_tasks'), 'all', Icons.dashboard_rounded),
+                _buildFilterChip(l10n.get('to_do'), 'assigned', Icons.assignment_ind_rounded),
+                _buildFilterChip(l10n.get('in_progress'), 'in_progress', Icons.construction_rounded),
+                _buildFilterChip(l10n.get('on_hold'), 'on_hold', Icons.pause_circle_outline_rounded),
+                _buildFilterChip(l10n.get('completed'), 'closed', Icons.check_circle_outline_rounded),
               ],
             ),
           ),
@@ -141,12 +151,12 @@ class _MaintainerHomeState extends State<MaintainerHome> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        "All caught up!",
+                        l10n.get('all_caught_up'),
                         style: textTheme.titleLarge,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        "You don't have any assigned tasks at the moment. Take a break!",
+                        l10n.get('no_tasks_msg'),
                         style: textTheme.bodyMedium,
                         textAlign: TextAlign.center,
                       ),
@@ -263,7 +273,7 @@ class _TaskCard extends StatelessWidget {
                 children: [
                   _buildIconInfo(context, Icons.location_on_rounded, report.location),
                   const SizedBox(width: 24),
-                  _buildIconInfo(context, Icons.access_time_rounded, "Incident ${report.reportDateTime.toString().split(' ')[0]}"),
+                  _buildIconInfo(context, Icons.access_time_rounded, "${AppLocalizations.of(context).get('incident_date')} ${report.reportDateTime.toString().split(' ')[0]}"),
                 ],
               ),
             ],
@@ -311,22 +321,22 @@ class _StatusChip extends StatelessWidget {
       case 'assigned': 
         color = const Color(0xFF8B5CF6); // Purple
         icon = Icons.assignment_ind_rounded;
-        label = 'To Do';
+        label = AppLocalizations.of(context).get('to_do');
         break;
       case 'in_progress': 
         color = const Color(0xFFF59E0B); // Amber
         icon = Icons.construction_rounded;
-        label = 'In Progress';
+        label = AppLocalizations.of(context).get('in_progress');
         break;
       case 'on_hold':
         color = Colors.orange;
         icon = Icons.pause_circle_outline_rounded;
-        label = 'On Hold';
+        label = AppLocalizations.of(context).get('on_hold');
         break;
       case 'closed': 
         color = const Color(0xFF10B981); // Emerald
         icon = Icons.check_circle_outline_rounded;
-        label = 'Completed';
+        label = AppLocalizations.of(context).get('completed');
         break;
       default: 
         color = Colors.grey; 

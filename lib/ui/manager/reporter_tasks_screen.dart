@@ -7,6 +7,7 @@ import '../../services/user_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import 'report_detail_manager_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class ReporterTasksScreen extends StatefulWidget {
   const ReporterTasksScreen({super.key});
@@ -55,7 +56,7 @@ class _ReporterTasksScreenState extends State<ReporterTasksScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tasks by Reporter"),
+        title: Text(AppLocalizations.of(context).get('tasks_by_reporter')),
       ),
       body: ResponsiveCenter(
         maxWidth: 1000,
@@ -66,7 +67,7 @@ class _ReporterTasksScreenState extends State<ReporterTasksScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (userSnapshot.hasError) {
-              return Center(child: Text("Error loading reporters"));
+              return Center(child: Text(AppLocalizations.of(context).get('error_loading_reporters')));
             }
 
             final reporters = userSnapshot.data ?? [];
@@ -141,8 +142,8 @@ class _ReporterGroup extends StatelessWidget {
         ),
         if (reports.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(left: 28.0, bottom: 16),
-            child: Text("No reports created", style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+            padding: const EdgeInsetsDirectional.only(start: 28.0, bottom: 16),
+            child: Text(AppLocalizations.of(context).get('no_reports_created'), style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
           )
         else
           ...reports.map((report) => _TaskMiniCard(report: report)),
@@ -167,14 +168,15 @@ class _TaskMiniCard extends StatelessWidget {
     final hoursOpen = difference.inHours;
 
     String openDuration;
+    final l10n = AppLocalizations.of(context);
     if (daysOpen > 0) {
-      openDuration = "$daysOpen day${daysOpen == 1 ? '' : 's'}";
+      openDuration = "$daysOpen ${l10n.get(daysOpen == 1 ? 'day' : 'days')}";
     } else {
-      openDuration = "$hoursOpen hour${hoursOpen == 1 ? '' : 's'}";
+      openDuration = "$hoursOpen ${l10n.get(hoursOpen == 1 ? 'hour' : 'hours')}";
     }
 
     return Card(
-      margin: const EdgeInsets.only(left: 28.0, bottom: 8),
+      margin: const EdgeInsetsDirectional.only(start: 28.0, bottom: 8),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -193,7 +195,7 @@ class _TaskMiniCard extends StatelessWidget {
                   children: [
                     Text(report.title, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text("Location: ${report.location}", style: textTheme.bodySmall),
+                    Text("${l10n.get('location')}: ${report.location}", style: textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -203,7 +205,7 @@ class _TaskMiniCard extends StatelessWidget {
                   _StatusSmallChip(status: report.status),
                   const SizedBox(height: 4),
                   Text(
-                    "Open for $openDuration",
+                    "${l10n.get('open_for')}$openDuration",
                     style: textTheme.labelSmall?.copyWith(color: colorScheme.secondary),
                   ),
                 ],
@@ -238,7 +240,7 @@ class _StatusSmallChip extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
-        status.toUpperCase(),
+        AppLocalizations.of(context).get(status).toUpperCase(),
         style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold),
       ),
     );

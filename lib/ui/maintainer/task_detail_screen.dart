@@ -6,6 +6,7 @@ import '../../services/audit_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../widgets/image_gallery.dart';
+import '../../l10n/app_localizations.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   final Report report;
@@ -38,7 +39,7 @@ class TaskDetailScreen extends StatelessWidget {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Status successfully updated to ${newStatus.replaceAll('_', ' ')}"),
+            content: Text("${AppLocalizations.of(context).get('status_updated_to')}${newStatus.replaceAll('_', ' ')}"),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Theme.of(context).colorScheme.primary,
           )
@@ -55,7 +56,7 @@ class TaskDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Manage Report"),
+        title: Text(AppLocalizations.of(context).get('manage_report')),
       ),
       body: ResponsiveCenter(
         maxWidth: 700,
@@ -67,22 +68,22 @@ class TaskDetailScreen extends StatelessWidget {
               _buildHeader(context),
               const SizedBox(height: 32),
               
-              __buildInfoCard(context, "Problem Description", report.description, Icons.description_outlined),
+              __buildInfoCard(context, AppLocalizations.of(context).get('problem_desc'), report.description, Icons.description_outlined),
               const SizedBox(height: 16),
               
-              __buildInfoCard(context, "Location", report.location, Icons.location_on_outlined),
+              __buildInfoCard(context, AppLocalizations.of(context).get('location'), report.location, Icons.location_on_outlined),
               const SizedBox(height: 16),
               
-              __buildInfoCard(context, "Incident Date", report.reportDateTime.toString().split(' ')[0], Icons.calendar_today_outlined),
+              __buildInfoCard(context, AppLocalizations.of(context).get('incident_date'), report.reportDateTime.toString().split(' ')[0], Icons.calendar_today_outlined),
               const SizedBox(height: 16),
               
               if (report.status == 'on_hold' && report.onHoldReason != null) ...[
-                __buildInfoCard(context, "Hold Reason", report.onHoldReason!, Icons.pause_circle_outline_rounded, isWarning: true),
+                __buildInfoCard(context, AppLocalizations.of(context).get('hold_reason'), report.onHoldReason!, Icons.pause_circle_outline_rounded, isWarning: true),
                 const SizedBox(height: 16),
               ],
               
               if (report.managerComments != null && report.managerComments!.isNotEmpty) ...[
-                __buildInfoCard(context, "Manager Feedback", report.managerComments!, Icons.feedback_outlined),
+                __buildInfoCard(context, AppLocalizations.of(context).get('manager_feedback'), report.managerComments!, Icons.feedback_outlined),
                 const SizedBox(height: 16),
               ],
               
@@ -175,7 +176,7 @@ class TaskDetailScreen extends StatelessWidget {
               Icon(Icons.contact_support_outlined, size: 18, color: colorScheme.onPrimaryContainer),
               const SizedBox(width: 8),
               Text(
-                "REPORTED BY",
+                AppLocalizations.of(context).get('reported_by'),
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w900,
@@ -223,19 +224,19 @@ class TaskDetailScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
+            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
             const SizedBox(height: 16),
             Text(
-              "Task Completed",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
+              AppLocalizations.of(context).get('task_completed'),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green),
             ),
             const SizedBox(height: 4),
             Text(
-              "This ticket is closed and waiting for managerial review.",
+              AppLocalizations.of(context).get('ticket_closed_msg'),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.green),
+              style: const TextStyle(color: Colors.green),
             ),
           ],
         ),
@@ -245,9 +246,9 @@ class TaskDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          "AVAILABLE ACTIONS",
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).get('available_actions'),
+          style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 11,
             letterSpacing: 1.2,
@@ -260,14 +261,14 @@ class TaskDetailScreen extends StatelessWidget {
           FilledButton.icon(
             onPressed: () => _updateStatus(context, 'in_progress'),
             icon: const Icon(Icons.play_arrow_rounded),
-            label: Text(report.status == 'on_hold' ? "Resume Work" : "Start Work"),
+            label: Text(report.status == 'on_hold' ? AppLocalizations.of(context).get('resume_work') : AppLocalizations.of(context).get('start_work')),
           ),
         if (report.status == 'in_progress') ...[
           FilledButton.icon(
             onPressed: () => _updateStatus(context, 'closed'),
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
             icon: const Icon(Icons.check_rounded),
-            label: const Text("Mark as Resolved"),
+            label: Text(AppLocalizations.of(context).get('mark_resolved')),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -277,7 +278,7 @@ class TaskDetailScreen extends StatelessWidget {
               side: const BorderSide(color: Colors.orange),
             ),
             icon: const Icon(Icons.pause_rounded),
-            label: const Text("Put on Hold"),
+            label: Text(AppLocalizations.of(context).get('put_on_hold')),
           ),
         ],
       ],
@@ -290,18 +291,18 @@ class TaskDetailScreen extends StatelessWidget {
     showDialog(
       context: screenContext,
       builder: (dialogContext) => AlertDialog(
-        title: const Text("Put Task on Hold"),
+        title: Text(AppLocalizations.of(screenContext).get('hold_dialog_title')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Please specify the reason why this task is being put on hold."),
+            Text(AppLocalizations.of(screenContext).get('hold_dialog_msg')),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: "Reason for Hold",
-                hintText: "e.g., Waiting for parts, Need more info...",
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(screenContext).get('reason_label'),
+                hintText: AppLocalizations.of(screenContext).get('reason_hint'),
                 alignLabelWithHint: true,
               ),
             ),
@@ -310,7 +311,7 @@ class TaskDetailScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text("Cancel"),
+            child: Text(AppLocalizations.of(screenContext).get('cancel')),
           ),
           FilledButton(
             onPressed: () {
@@ -320,7 +321,7 @@ class TaskDetailScreen extends StatelessWidget {
                 _updateStatus(screenContext, 'on_hold', onHoldReason: reason);
               }
             },
-            child: const Text("Confirm Hold"),
+            child: Text(AppLocalizations.of(screenContext).get('confirm_hold')),
           ),
         ],
       ),
@@ -339,10 +340,10 @@ class _StatusBadge extends StatelessWidget {
     String label;
 
     switch (status) {
-      case 'assigned': color = const Color(0xFF8B5CF6); label = 'TO DO'; break;
-      case 'in_progress': color = const Color(0xFFF59E0B); label = 'IN PROGRESS'; break;
-      case 'on_hold': color = Colors.orange; label = 'ON HOLD'; break;
-      case 'closed': color = const Color(0xFF10B981); label = 'COMPLETED'; break;
+      case 'assigned': color = const Color(0xFF8B5CF6); label = AppLocalizations.of(context).get('to_do'); break;
+      case 'in_progress': color = const Color(0xFFF59E0B); label = AppLocalizations.of(context).get('in_progress'); break;
+      case 'on_hold': color = Colors.orange; label = AppLocalizations.of(context).get('on_hold'); break;
+      case 'closed': color = const Color(0xFF10B981); label = AppLocalizations.of(context).get('completed'); break;
       default: color = Colors.grey; label = status.toUpperCase();
     }
 

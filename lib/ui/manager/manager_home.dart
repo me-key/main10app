@@ -6,6 +6,8 @@ import '../../services/report_service.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'report_detail_manager_screen.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 import 'manage_locations_screen.dart';
 import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
@@ -63,6 +65,8 @@ class _ManagerHomeState extends State<ManagerHome> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final authService = Provider.of<AuthService>(context, listen: false);
+    final l10n = AppLocalizations.of(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
 
     if (_isLoading || _organizationId == null) {
       return const Scaffold(
@@ -78,17 +82,23 @@ class _ManagerHomeState extends State<ManagerHome> {
             Text(
               authService.impersonatedProfile != null 
                   ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
-                  : "Manager Dashboard",
+                  : l10n.get('manager_dashboard'),
               style: textTheme.titleLarge,
             ),
             if (authService.impersonatedProfile == null)
               Text(
-                "Overall maintenance activity",
+                l10n.get('overall_activity'),
                 style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
               ),
           ],
         ),
         actions: [
+          IconButton.filledTonal(
+            onPressed: () => localeProvider.toggleLocale(),
+            icon: Text(localeProvider.locale.languageCode == 'en' ? 'HE' : 'EN', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            tooltip: localeProvider.locale.languageCode == 'en' ? 'עברית' : 'English',
+          ),
+          const SizedBox(width: 8),
           if (authService.impersonatedProfile != null)
              Padding(
                padding: const EdgeInsets.only(right: 8.0),
@@ -101,7 +111,7 @@ class _ManagerHomeState extends State<ManagerHome> {
           IconButton.filledTonal(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageLocationsScreen())),
             icon: const Icon(Icons.location_on_rounded, size: 20),
-            tooltip: "Manage Locations",
+            tooltip: l10n.get('manage_locations'),
           ),
           const SizedBox(width: 8),
           PopupMenuButton<String>(
@@ -113,7 +123,7 @@ class _ManagerHomeState extends State<ManagerHome> {
               ),
               child: Icon(Icons.bar_chart_rounded, size: 20, color: colorScheme.onSecondaryContainer),
             ),
-            tooltip: "Task distribution",
+            tooltip: l10n.get('task_distribution'),
             onSelected: (value) {
               if (value == 'maintainers') {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const MaintainerTasksScreen()));
@@ -130,7 +140,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                   children: [
                     Icon(Icons.engineering_rounded, color: colorScheme.primary),
                     const SizedBox(width: 12),
-                    const Text("By Maintainer"),
+                    Text(l10n.get('by_maintainer')),
                   ],
                 ),
               ),
@@ -140,7 +150,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                   children: [
                     Icon(Icons.person_pin_circle_rounded, color: colorScheme.primary),
                     const SizedBox(width: 12),
-                    const Text("By Reporter"),
+                    Text(l10n.get('by_reporter')),
                   ],
                 ),
               ),
@@ -150,7 +160,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                   children: [
                     Icon(Icons.location_on_rounded, color: colorScheme.primary),
                     const SizedBox(width: 12),
-                    const Text("By Location"),
+                    Text(l10n.get('by_location')),
                   ],
                 ),
               ),
@@ -162,7 +172,7 @@ class _ManagerHomeState extends State<ManagerHome> {
           IconButton.filledTonal(
             onPressed: () => authService.signOut(), 
             icon: const Icon(Icons.logout_rounded, size: 20),
-            tooltip: "Logout",
+            tooltip: l10n.get('logout'),
           ),
           const SizedBox(width: 16),
         ],
@@ -175,12 +185,12 @@ class _ManagerHomeState extends State<ManagerHome> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildFilterChip('All Reports', 'all', Icons.dashboard_rounded),
-                _buildFilterChip('Open', 'open', Icons.error_outline_rounded),
-                _buildFilterChip('Assigned', 'assigned', Icons.assignment_ind_rounded),
-                _buildFilterChip('Work in Progress', 'in_progress', Icons.construction_rounded),
-                _buildFilterChip('On Hold', 'on_hold', Icons.pause_circle_outline_rounded),
-                _buildFilterChip('Closed', 'closed', Icons.check_circle_outline_rounded),
+                _buildFilterChip(l10n.get('all_tasks'), 'all', Icons.dashboard_rounded),
+                _buildFilterChip(l10n.get('open'), 'open', Icons.error_outline_rounded),
+                _buildFilterChip(l10n.get('assigned'), 'assigned', Icons.assignment_ind_rounded),
+                _buildFilterChip(l10n.get('working'), 'in_progress', Icons.construction_rounded),
+                _buildFilterChip(l10n.get('on_hold'), 'on_hold', Icons.pause_circle_outline_rounded),
+                _buildFilterChip(l10n.get('resolved'), 'closed', Icons.check_circle_outline_rounded),
               ],
             ),
           ),
@@ -220,7 +230,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                   children: [
                     Icon(Icons.search_off_rounded, size: 48, color: colorScheme.onSurface.withValues(alpha: 0.2)),
                     const SizedBox(height: 16),
-                    Text("No reports match your filters", style: textTheme.bodyLarge),
+                    Text(l10n.get('no_reports_match'), style: textTheme.bodyLarge),
                   ],
                 ),
               );
@@ -345,7 +355,7 @@ class _ManagerReportCard extends StatelessWidget {
                             builder: (context, snapshot) {
                               if (snapshot.hasData && snapshot.data != null) {
                                 return Text(
-                                  "Assigned to: ${snapshot.data!.displayName}",
+                                  "${AppLocalizations.of(context).get('assigned')}: ${snapshot.data!.displayName}",
                                   style: textTheme.labelSmall?.copyWith(
                                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                                     fontWeight: FontWeight.bold,
@@ -383,32 +393,32 @@ class _StatusChip extends StatelessWidget {
       case 'open': 
         color = const Color(0xFF3B82F6); 
         icon = Icons.error_outline_rounded;
-        label = 'Open';
+        label = AppLocalizations.of(context).get('open');
         break;
       case 'assigned': 
         color = const Color(0xFF8B5CF6); 
         icon = Icons.assignment_ind_rounded;
-        label = 'Assigned';
+        label = AppLocalizations.of(context).get('assigned');
         break;
       case 'in_progress': 
         color = const Color(0xFFF59E0B); 
         icon = Icons.construction_rounded;
-        label = 'Working';
+        label = AppLocalizations.of(context).get('working');
         break;
       case 'on_hold':
         color = Colors.orange;
         icon = Icons.pause_circle_outline_rounded;
-        label = 'On Hold';
+        label = AppLocalizations.of(context).get('on_hold');
         break;
       case 'closed': 
         color = const Color(0xFF10B981); 
         icon = Icons.check_circle_outline_rounded;
-        label = 'Resolved';
+        label = AppLocalizations.of(context).get('resolved');
         break;
       case 'archived': 
         color = const Color(0xFF64748B); 
         icon = Icons.archive_outlined;
-        label = 'Archived';
+        label = AppLocalizations.of(context).get('archived');
         break;
       default: 
         color = Colors.grey; 

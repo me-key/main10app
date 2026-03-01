@@ -12,6 +12,7 @@ import '../../services/location_service.dart';
 import '../../services/audit_service.dart';
 import '../../models/location.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
 
 class CreateReportScreen extends StatefulWidget {
   const CreateReportScreen({super.key});
@@ -101,7 +102,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error picking image: $e"))
+          SnackBar(content: Text("${AppLocalizations.of(context).get('error_picking_image')}: $e"))
         );
       }
     }
@@ -121,7 +122,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Photo Library'),
+              title: Text(AppLocalizations.of(context).get('photo_library')),
               onTap: () {
                 _pickImage(ImageSource.gallery);
                 Navigator.of(context).pop();
@@ -129,7 +130,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+              title: Text(AppLocalizations.of(context).get('camera')),
               onTap: () {
                 _pickImage(ImageSource.camera);
                 Navigator.of(context).pop();
@@ -217,7 +218,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           Navigator.of(context).pop(); 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text("Report created successfully!"),
+              content: Text(AppLocalizations.of(context).get('report_success')),
               backgroundColor: Theme.of(context).colorScheme.primary,
               behavior: SnackBarBehavior.floating,
               width: 400,
@@ -256,7 +257,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Create Report"),
+        title: Text(AppLocalizations.of(context).get('create_report')),
       ),
       body: ResponsiveCenter(
         maxWidth: 650,
@@ -267,57 +268,57 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeader(context, "Tell us what happened", "Provide clear details to help us fix the issue faster."),
+                _buildHeader(context, AppLocalizations.of(context).get('tell_us_happened'), AppLocalizations.of(context).get('provide_clear_details')),
                 const SizedBox(height: 32),
                 
                 _buildFieldGroup(
                   context,
-                  "REPORT DETAILS",
+                  AppLocalizations.of(context).get('report_details_cap'),
                   [
-                    _buildLabel("Issue Title"),
+                    _buildLabel(AppLocalizations.of(context).get('issue_title')),
                     TextFormField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        hintText: "e.g., Broken AC in Room 302",
-                        prefixIcon: Icon(Icons.title_rounded, size: 20),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).get('issue_title_hint'),
+                        prefixIcon: const Icon(Icons.title_rounded, size: 20),
                       ),
-                      validator: (v) => v!.isEmpty ? "Required" : null,
+                      validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
                     const SizedBox(height: 24),
-                    _buildLabel("Detailed Description"),
+                    _buildLabel(AppLocalizations.of(context).get('detailed_description')),
                     TextFormField(
                       controller: _descController,
-                      decoration: const InputDecoration(
-                        hintText: "Describe the problem in more detail...",
-                        prefixIcon: Icon(Icons.description_rounded, size: 20),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).get('description_hint'),
+                        prefixIcon: const Icon(Icons.description_rounded, size: 20),
                         alignLabelWithHint: true,
                       ),
                       maxLines: 4,
-                      validator: (v) => v!.isEmpty ? "Required" : null,
+                      validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
                     const SizedBox(height: 24),
-                    _buildLabel("Specific Location"),
+                    _buildLabel(AppLocalizations.of(context).get('specific_location')),
                     StreamBuilder<List<Location>>(
                       stream: Provider.of<LocationService>(context, listen: false).getLocations(_organizationId!),
                       builder: (context, snapshot) {
                         final locations = snapshot.data ?? [];
                         return DropdownButtonFormField<String>(
                           value: _selectedLocation,
-                          decoration: const InputDecoration(
-                            hintText: "Select location",
-                            prefixIcon: Icon(Icons.location_on_rounded, size: 20),
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context).get('select_location_hint'),
+                            prefixIcon: const Icon(Icons.location_on_rounded, size: 20),
                           ),
                           items: locations.map((loc) => DropdownMenuItem(
                             value: loc.name,
                             child: Text(loc.name),
                           )).toList(),
                           onChanged: (value) => setState(() => _selectedLocation = value),
-                          validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                          validator: (v) => v == null || v.isEmpty ? AppLocalizations.of(context).get('required') : null,
                         );
                       },
                     ),
                     const SizedBox(height: 24),
-                    _buildLabel("Date & Time of Incident"),
+                    _buildLabel(AppLocalizations.of(context).get('incident_date_time')),
                     InkWell(
                       onTap: _pickDateTime,
                       borderRadius: BorderRadius.circular(12),
@@ -343,7 +344,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _buildLabel("Attachments"),
+                    _buildLabel(AppLocalizations.of(context).get('attachments')),
                     _buildImageSelection(context),
                   ],
                 ),
@@ -352,27 +353,27 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                 
                 _buildFieldGroup(
                   context,
-                  "REPORTER INFO",
+                  AppLocalizations.of(context).get('reporter_info_cap'),
                   [
-                    _buildLabel("Full Name"),
+                    _buildLabel(AppLocalizations.of(context).get('full_name')),
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(
-                        hintText: "Your name",
-                        prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).get('name_hint'),
+                        prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
                       ),
-                      validator: (v) => v!.isEmpty ? "Required" : null,
+                      validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
                     const SizedBox(height: 24),
-                    _buildLabel("Phone Number"),
+                    _buildLabel(AppLocalizations.of(context).get('phone_number')),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(
-                        hintText: "For quick updates",
-                        prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).get('phone_hint'),
+                        prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                       ),
                       keyboardType: TextInputType.phone,
-                      validator: (v) => v!.isEmpty ? "Required" : null,
+                      validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
                   ],
                 ),
@@ -383,7 +384,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                   onPressed: _isLoading ? null : _submitReport,
                   child: _isLoading 
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                    : const Text("Submit Maintenance Report"),
+                    : Text(AppLocalizations.of(context).get('submit_maintenance_report')),
                 ),
                 const SizedBox(height: 40),
               ],
@@ -406,7 +407,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
               itemCount: _selectedImages.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsetsDirectional.only(end: 12),
                   child: Stack(
                     children: [
                       ClipRRect(
@@ -450,7 +451,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         OutlinedButton.icon(
           onPressed: _showImagePickerOptions,
           icon: const Icon(Icons.add_a_photo_rounded),
-          label: const Text("Add Photo"),
+          label: Text(AppLocalizations.of(context).get('add_photo')),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -473,7 +474,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
   Widget _buildLabel(String label) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      padding: const EdgeInsetsDirectional.only(bottom: 8, start: 4),
       child: Text(
         label,
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 0.2),
@@ -487,7 +488,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          padding: const EdgeInsetsDirectional.only(start: 4, bottom: 12),
           child: Text(
             title,
             style: TextStyle(

@@ -8,6 +8,7 @@ import 'reporter/reporter_home.dart';
 import 'maintainer/maintainer_home.dart';
 import 'manager/manager_home.dart';
 import 'admin/admin_home.dart';
+import '../l10n/app_localizations.dart';
 
 class RoleWrapper extends StatefulWidget {
   const RoleWrapper({super.key});
@@ -72,20 +73,20 @@ class _RoleWrapperState extends State<RoleWrapper> {
                           children: [
                             const Icon(Icons.account_circle_outlined, size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
-                            const Text(
-                              "Account Issue",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            Text(
+                              AppLocalizations.of(context).get('account_issue'),
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              "Your account profile is missing or has been deleted.\nPlease contact an administrator.",
+                            Text(
+                              AppLocalizations.of(context).get('account_missing_msg'),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 24),
                             FilledButton.icon(
                               onPressed: () => authService.signOut(), 
                               icon: const Icon(Icons.logout),
-                              label: const Text("Logout"),
+                              label: Text(AppLocalizations.of(context).get('logout')),
                             )
                           ],
                         )

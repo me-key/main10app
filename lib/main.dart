@@ -10,7 +10,10 @@ import 'services/storage_service.dart';
 import 'services/location_service.dart';
 import 'services/audit_service.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 import 'ui/role_wrapper.dart';
+import 'l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +33,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<ReportService>(create: (_) => ReportService()),
         Provider<UserService>(create: (_) => UserService()),
@@ -47,13 +51,24 @@ class FixItProApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LocaleProvider>(
+      builder: (context, themeProvider, localeProvider, child) {
         return MaterialApp(
           title: 'FixIt-Pro',
           theme: appTheme,
           darkTheme: appDarkTheme,
           themeMode: themeProvider.themeMode,
+          locale: localeProvider.locale,
+          supportedLocales: const [
+            Locale('en', ''),
+            Locale('he', ''),
+          ],
+          localizationsDelegates: const [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: const RoleWrapper(),
         );
       },

@@ -9,6 +9,7 @@ import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../widgets/image_gallery.dart';
 import '../widgets/audit_trail_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class ReportDetailManagerScreen extends StatefulWidget {
   final Report report;
@@ -181,7 +182,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Manage Report")),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).get('manage_report'))),
       body: ResponsiveCenter(
         maxWidth: 700,
         child: SingleChildScrollView(
@@ -192,21 +193,21 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
               _buildHeader(context),
               const SizedBox(height: 32),
               
-              _buildInfoSection(context, "Problem Details", [
+              _buildInfoSection(context, AppLocalizations.of(context).get('problem_desc'), [
                 _buildInfoItem(context, "Title", widget.report.title),
                 const SizedBox(height: 16),
-                _buildInfoItem(context, "Description", widget.report.description),
+                _buildInfoItem(context, AppLocalizations.of(context).get('problem_desc'), widget.report.description),
                 const SizedBox(height: 16),
-                _buildInfoItem(context, "Location", widget.report.location),
+                _buildInfoItem(context, AppLocalizations.of(context).get('location'), widget.report.location),
                 const SizedBox(height: 16),
-                _buildInfoItem(context, "Incident Date", widget.report.reportDateTime.toString().split(' ')[0]),
+                _buildInfoItem(context, AppLocalizations.of(context).get('incident_date'), widget.report.reportDateTime.toString().split(' ')[0]),
                 if (widget.report.status == 'on_hold' && widget.report.onHoldReason != null) ...[
                    const SizedBox(height: 16),
-                   _buildInfoItem(context, "Hold Reason", widget.report.onHoldReason!, isWarning: true),
+                   _buildInfoItem(context, AppLocalizations.of(context).get('hold_reason'), widget.report.onHoldReason!, isWarning: true),
                 ],
                 if (widget.report.managerComments != null && widget.report.managerComments!.isNotEmpty) ...[
                   const SizedBox(height: 16),
-                  _buildInfoItem(context, "Manager Feedback", widget.report.managerComments!),
+                  _buildInfoItem(context, AppLocalizations.of(context).get('manager_feedback'), widget.report.managerComments!),
                 ],
                 ImageGallery(imageUrls: widget.report.imageUrls),
               ]),
@@ -243,7 +244,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("REPORT CASE", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.2)),
+                Text(AppLocalizations.of(context).get('report_case'), style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1.2)),
                 const SizedBox(height: 4),
                 Text("#${widget.report.id.substring(0, 8).toUpperCase()}", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               ],
@@ -299,6 +300,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
   Widget _buildManagementActions(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     if (widget.report.status == 'open') {
       return Container(
@@ -311,9 +313,9 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text("Assign Maintainer", style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(l10n.get('assign_maintainer'), style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text("Select a team member to handle this ticket.", style: textTheme.bodySmall),
+            Text(l10n.get('select_team_member'), style: textTheme.bodySmall),
             const SizedBox(height: 24),
             StreamBuilder<List<UserProfile>>(
               stream: Provider.of<UserService>(context, listen: false).getMaintainers(_organizationId!),
@@ -328,9 +330,9 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
                     child: Text(user.displayName),
                   )).toList(),
                   onChanged: (val) => setState(() => _selectedMaintainer = val),
-                  decoration: const InputDecoration(
-                    labelText: "Select Staff",
-                    prefixIcon: Icon(Icons.person_pin_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.get('select_staff'),
+                    prefixIcon: const Icon(Icons.person_pin_rounded),
                   ),
                 );
               },
@@ -339,7 +341,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
             FilledButton.icon(
               onPressed: (_selectedMaintainer != null && !_isLoading) ? _assignMaintainer : null,
               icon: _isLoading ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.assignment_turned_in_rounded),
-              label: const Text("Assign Now"),
+              label: Text(l10n.get('assign_now')),
             )
           ],
         ),
@@ -373,9 +375,9 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
             TextField(
               controller: _commentsController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: "Feedback/Comments",
-                hintText: "Add notes about the resolution or reasons for reassignment...",
+              decoration: InputDecoration(
+                labelText: l10n.get('feedback_label'),
+                hintText: l10n.get('feedback_hint'),
                 alignLabelWithHint: true,
               ),
             ),
@@ -390,7 +392,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
                       side: const BorderSide(color: Colors.orange),
                     ),
                     icon: const Icon(Icons.replay_rounded),
-                    label: const Text("Reassign"),
+                    label: Text(l10n.get('reassign')),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -399,7 +401,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
                     onPressed: _isLoading ? null : _archiveReport,
                     style: FilledButton.styleFrom(backgroundColor: Colors.green),
                     icon: const Icon(Icons.archive_rounded),
-                    label: const Text("Archive & Close"),
+                    label: Text(l10n.get('archive_close')),
                   ),
                 ),
               ],
@@ -435,12 +437,12 @@ class _StatusBadge extends StatelessWidget {
     String label;
 
     switch (status) {
-      case 'open': color = const Color(0xFF3B82F6); label = 'OPEN'; break;
-      case 'assigned': color = const Color(0xFF8B5CF6); label = 'ASSIGNED'; break;
-      case 'in_progress': color = const Color(0xFFF59E0B); label = 'WORKING'; break;
-      case 'on_hold': color = Colors.orange; label = 'ON HOLD'; break;
-      case 'closed': color = const Color(0xFF10B981); label = 'RESOLVED'; break;
-      case 'archived': color = const Color(0xFF64748B); label = 'ARCHIVED'; break;
+      case 'open': color = const Color(0xFF3B82F6); label = AppLocalizations.of(context).get('open'); break;
+      case 'assigned': color = const Color(0xFF8B5CF6); label = AppLocalizations.of(context).get('assigned'); break;
+      case 'in_progress': color = const Color(0xFFF59E0B); label = AppLocalizations.of(context).get('working'); break;
+      case 'on_hold': color = Colors.orange; label = AppLocalizations.of(context).get('on_hold'); break;
+      case 'closed': color = const Color(0xFF10B981); label = AppLocalizations.of(context).get('resolved'); break;
+      case 'archived': color = const Color(0xFF64748B); label = AppLocalizations.of(context).get('archived'); break;
       default: color = Colors.grey; label = status.toUpperCase();
     }
 

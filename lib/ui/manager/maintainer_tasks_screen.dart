@@ -7,6 +7,7 @@ import '../../services/user_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import 'report_detail_manager_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class MaintainerTasksScreen extends StatefulWidget {
   const MaintainerTasksScreen({super.key});
@@ -55,7 +56,7 @@ class _MaintainerTasksScreenState extends State<MaintainerTasksScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tasks by Maintainer"),
+        title: Text(AppLocalizations.of(context).get('tasks_by_maintainer')),
       ),
       body: ResponsiveCenter(
         maxWidth: 1000,
@@ -66,7 +67,7 @@ class _MaintainerTasksScreenState extends State<MaintainerTasksScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (userSnapshot.hasError) {
-              return Center(child: Text("Error loading maintainers"));
+              return Center(child: Text(AppLocalizations.of(context).get('error_loading_maintainers')));
             }
 
             final maintainers = userSnapshot.data ?? [];
@@ -101,7 +102,7 @@ class _MaintainerTasksScreenState extends State<MaintainerTasksScreen> {
                     } else {
                       final unassignedReports = groupedReports[null] ?? [];
                       return _MaintainerGroup(
-                        title: "Unassigned",
+                        title: AppLocalizations.of(context).get('unassigned'),
                         reports: unassignedReports,
                         colorScheme: colorScheme,
                         textTheme: textTheme,
@@ -158,8 +159,8 @@ class _MaintainerGroup extends StatelessWidget {
         ),
         if (reports.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(left: 28.0, bottom: 16),
-            child: Text("No tasks assigned", style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+            padding: const EdgeInsetsDirectional.only(start: 28.0, bottom: 16),
+            child: Text(AppLocalizations.of(context).get('no_tasks_assigned'), style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
           )
         else
           ...reports.map((report) => _TaskMiniCard(report: report)),
@@ -184,14 +185,15 @@ class _TaskMiniCard extends StatelessWidget {
     final hoursOpen = difference.inHours;
 
     String openDuration;
+    final l10n = AppLocalizations.of(context);
     if (daysOpen > 0) {
-      openDuration = "$daysOpen day${daysOpen == 1 ? '' : 's'}";
+      openDuration = "$daysOpen ${l10n.get(daysOpen == 1 ? 'day' : 'days')}";
     } else {
-      openDuration = "$hoursOpen hour${hoursOpen == 1 ? '' : 's'}";
+      openDuration = "$hoursOpen ${l10n.get(hoursOpen == 1 ? 'hour' : 'hours')}";
     }
 
     return Card(
-      margin: const EdgeInsets.only(left: 28.0, bottom: 8),
+      margin: const EdgeInsetsDirectional.only(start: 28.0, bottom: 8),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -210,7 +212,7 @@ class _TaskMiniCard extends StatelessWidget {
                   children: [
                     Text(report.title, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text("Location: ${report.location}", style: textTheme.bodySmall),
+                    Text("${l10n.get('location')}: ${report.location}", style: textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -220,7 +222,7 @@ class _TaskMiniCard extends StatelessWidget {
                   _StatusSmallChip(status: report.status),
                   const SizedBox(height: 4),
                   Text(
-                    "Open for $openDuration",
+                    "${l10n.get('open_for')}$openDuration",
                     style: textTheme.labelSmall?.copyWith(color: colorScheme.secondary),
                   ),
                 ],
@@ -255,7 +257,7 @@ class _StatusSmallChip extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
-        status.toUpperCase(),
+        AppLocalizations.of(context).get(status).toUpperCase(),
         style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold),
       ),
     );

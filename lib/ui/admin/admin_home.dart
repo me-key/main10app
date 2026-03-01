@@ -6,6 +6,8 @@ import '../../services/user_service.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'manage_user_screen.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -60,7 +62,7 @@ class _AdminHomeState extends State<AdminHome> {
             Text(
               authService.impersonatedProfile != null 
                   ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
-                  : "User Management",
+                  : AppLocalizations.of(context).get('user_management'),
               style: textTheme.titleLarge,
             ),
             if (authService.impersonatedProfile == null)
@@ -71,6 +73,12 @@ class _AdminHomeState extends State<AdminHome> {
           ],
         ),
         actions: [
+          IconButton.filledTonal(
+            onPressed: () => Provider.of<LocaleProvider>(context, listen: false).toggleLocale(),
+            icon: Text(Provider.of<LocaleProvider>(context, listen: false).locale.languageCode == 'en' ? 'HE' : 'EN', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            tooltip: Provider.of<LocaleProvider>(context, listen: false).locale.languageCode == 'en' ? 'עברית' : 'English',
+          ),
+          const SizedBox(width: 8),
           if (authService.impersonatedProfile != null)
              Padding(
                padding: const EdgeInsets.only(right: 8.0),

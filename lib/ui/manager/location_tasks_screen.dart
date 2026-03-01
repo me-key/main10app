@@ -5,6 +5,7 @@ import '../../services/report_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import 'report_detail_manager_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class LocationTasksScreen extends StatefulWidget {
   const LocationTasksScreen({super.key});
@@ -52,7 +53,7 @@ class _LocationTasksScreenState extends State<LocationTasksScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tasks by Location"),
+        title: Text(AppLocalizations.of(context).get('tasks_by_location')),
       ),
       body: ResponsiveCenter(
         maxWidth: 1000,
@@ -77,7 +78,7 @@ class _LocationTasksScreenState extends State<LocationTasksScreen> {
             final locations = groupedReports.keys.toList()..sort();
 
             if (locations.isEmpty) {
-              return const Center(child: Text("No tasks found"));
+              return Center(child: Text(AppLocalizations.of(context).get('no_tasks_found')));
             }
 
             return ListView.builder(
@@ -138,8 +139,8 @@ class _LocationGroup extends StatelessWidget {
         ),
         if (reports.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(left: 28.0, bottom: 16),
-            child: Text("No tasks for this location", style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+            padding: const EdgeInsetsDirectional.only(start: 28.0, bottom: 16),
+            child: Text(AppLocalizations.of(context).get('no_tasks_found'), style: textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
           )
         else
           ...reports.map((report) => _TaskMiniCard(report: report)),
@@ -164,14 +165,15 @@ class _TaskMiniCard extends StatelessWidget {
     final hoursOpen = difference.inHours;
 
     String openDuration;
+    final l10n = AppLocalizations.of(context);
     if (daysOpen > 0) {
-      openDuration = "$daysOpen day${daysOpen == 1 ? '' : 's'}";
+      openDuration = "$daysOpen ${l10n.get(daysOpen == 1 ? 'day' : 'days')}";
     } else {
-      openDuration = "$hoursOpen hour${hoursOpen == 1 ? '' : 's'}";
+      openDuration = "$hoursOpen ${l10n.get(hoursOpen == 1 ? 'hour' : 'hours')}";
     }
 
     return Card(
-      margin: const EdgeInsets.only(left: 28.0, bottom: 8),
+      margin: const EdgeInsetsDirectional.only(start: 28.0, bottom: 8),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -200,7 +202,7 @@ class _TaskMiniCard extends StatelessWidget {
                   _StatusSmallChip(status: report.status),
                   const SizedBox(height: 4),
                   Text(
-                    "Open for $openDuration",
+                    "${l10n.get('open_for')}$openDuration",
                     style: textTheme.labelSmall?.copyWith(color: colorScheme.secondary),
                   ),
                 ],
@@ -236,7 +238,7 @@ class _StatusSmallChip extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
-        status.toUpperCase(),
+        AppLocalizations.of(context).get(status).toUpperCase(),
         style: TextStyle(color: color, fontSize: 8, fontWeight: FontWeight.bold),
       ),
     );
