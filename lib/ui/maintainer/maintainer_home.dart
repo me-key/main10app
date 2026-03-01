@@ -17,6 +17,7 @@ class MaintainerHome extends StatefulWidget {
 
 class _MaintainerHomeState extends State<MaintainerHome> {
   String? _organizationId;
+  String _filterStatus = 'all';
   bool _isLoading = true;
 
   @override
@@ -90,13 +91,29 @@ class _MaintainerHomeState extends State<MaintainerHome> {
             icon: const Icon(Icons.logout_rounded, size: 20),
             tooltip: "Logout",
           ),
-          const SizedBox(width: 16),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildFilterChip('All Tasks', 'all', Icons.dashboard_rounded),
+                _buildFilterChip('To Do', 'assigned', Icons.assignment_ind_rounded),
+                _buildFilterChip('In Progress', 'in_progress', Icons.construction_rounded),
+                _buildFilterChip('Completed', 'closed', Icons.check_circle_outline_rounded),
+              ],
+            ),
+          ),
+        ),
       ),
       body: ResponsiveCenter(
         maxWidth: 900,
         child: StreamBuilder<List<Report>>(
-          stream: reportService.getReportsForMaintainer(user.uid, _organizationId!),
+          stream: reportService.getReportsForMaintainer(user.uid, _organizationId!, status: _filterStatus),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Center(child: Text("Error: ${snapshot.error}"));
@@ -150,6 +167,40 @@ class _MaintainerHomeState extends State<MaintainerHome> {
               },
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _filterStatus == value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: FilterChip(
+        avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.5)),
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (_filterStatus != value) {
+            setState(() {
+              _filterStatus = value;
+            });
+          }
+        },
+        showCheckmark: false,
+        backgroundColor: Colors.transparent,
+        selectedColor: colorScheme.primary,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
         ),
       ),
     );

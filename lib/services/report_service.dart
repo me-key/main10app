@@ -111,19 +111,25 @@ class ReportService {
 Stream<List<Report>> getReportsForMaintainer(
   String uid,
   String organizationId, {
+  String? status,
   int limit = 50,
 }) {
-  debugPrint('🟢 getReportsForMaintainer called (uid=$uid, orgId=$organizationId, limit=$limit)');
+  debugPrint('🟢 getReportsForMaintainer called (uid=$uid, orgId=$organizationId, status=$status, limit=$limit)');
 
   if (_firestore == null) {
     debugPrint('⚠️ Firestore is null, returning empty stream');
     return const Stream.empty();
   }
 
-  return _firestore!
-      .collection(_collection)
+  Query query = _firestore!.collection(_collection)
       .where('organizationId', isEqualTo: organizationId)
-      .where('assignedTo', isEqualTo: uid)
+      .where('assignedTo', isEqualTo: uid);
+
+  if (status != null && status != 'all') {
+    query = query.where('status', isEqualTo: status);
+  }
+
+  return query
       .limit(limit)
       .snapshots()
       .handleError((error) {
