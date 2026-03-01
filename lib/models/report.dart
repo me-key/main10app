@@ -16,6 +16,7 @@ class Report {
   final DateTime updatedAt;
   final DateTime reportDateTime;
   final String? managerComments;
+  final String? onHoldReason;
   final String organizationId;
 
   Report({
@@ -34,6 +35,7 @@ class Report {
     required this.updatedAt,
     required this.reportDateTime,
     this.managerComments,
+    this.onHoldReason,
     required this.organizationId,
   });
 
@@ -55,6 +57,7 @@ class Report {
       updatedAt: (data['updatedAt'] as Timestamp? ?? Timestamp.now()).toDate(),
       reportDateTime: (data['reportDateTime'] as Timestamp? ?? data['createdAt'] as Timestamp? ?? Timestamp.now()).toDate(),
       managerComments: data['managerComments'],
+      onHoldReason: data['onHoldReason'],
       organizationId: data['organizationId'] ?? '',
     );
   }
@@ -75,6 +78,7 @@ class Report {
       'updatedAt': Timestamp.fromDate(updatedAt),
       'reportDateTime': Timestamp.fromDate(reportDateTime),
       'managerComments': managerComments,
+      'onHoldReason': onHoldReason,
       'organizationId': organizationId,
     };
   }
@@ -92,6 +96,7 @@ class Report {
     DateTime? updatedAt,
     DateTime? reportDateTime,
     String? managerComments,
+    String? onHoldReason,
   }) {
     return Report(
       id: id,
@@ -109,6 +114,7 @@ class Report {
       updatedAt: updatedAt ?? this.updatedAt,
       reportDateTime: reportDateTime ?? this.reportDateTime,
       managerComments: managerComments ?? this.managerComments,
+      onHoldReason: onHoldReason ?? this.onHoldReason,
       organizationId: organizationId, // Should not change
     );
   }

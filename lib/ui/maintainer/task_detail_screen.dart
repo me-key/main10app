@@ -12,10 +12,14 @@ class TaskDetailScreen extends StatelessWidget {
 
   const TaskDetailScreen({super.key, required this.report});
 
-  void _updateStatus(BuildContext context, String newStatus) async {
+  void _updateStatus(BuildContext context, String newStatus, {String? onHoldReason}) async {
     final reportService = Provider.of<ReportService>(context, listen: false);
     try {
-      await reportService.updateReport(report.id, {'status': newStatus});
+      final Map<String, dynamic> updateData = {'status': newStatus};
+      if (onHoldReason != null) {
+        updateData['onHoldReason'] = onHoldReason;
+      }
+      await reportService.updateReport(report.id, updateData);
       // Log audit
       if (context.mounted) {
         final authService = Provider.of<AuthService>(context, listen: false);
@@ -26,7 +30,7 @@ class TaskDetailScreen extends StatelessWidget {
           userId: authService.currentUserId!,
           userName: currentUser?.displayName ?? 'Maintainer',
           action: 'status_changed',
-          details: 'Status updated to ${newStatus.replaceAll('_', ' ')}',
+          details: 'Status updated to ${newStatus.replaceAll('_', ' ')}${onHoldReason != null ? ' - Reason: $onHoldReason' : ''}',
           organizationId: currentUser?.organizationId ?? report.organizationId,
         );
       }
@@ -72,6 +76,11 @@ class TaskDetailScreen extends StatelessWidget {
               __buildInfoCard(context, "Incident Date", report.reportDateTime.toString().split(' ')[0], Icons.calendar_today_outlined),
               const SizedBox(height: 16),
               
+              if (report.status == 'on_hold' && report.onHoldReason != null) ...[
+                __buildInfoCard(context, "Hold Reason", report.onHoldReason!, Icons.pause_circle_outline_rounded, isWarning: true),
+                const SizedBox(height: 16),
+              ],
+              
               if (report.managerComments != null && report.managerComments!.isNotEmpty) ...[
                 __buildInfoCard(context, "Manager Feedback", report.managerComments!, Icons.feedback_outlined),
                 const SizedBox(height: 16),
@@ -107,29 +116,31 @@ class TaskDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget __buildInfoCard(BuildContext context, String title, String content, IconData icon) {
+  Widget __buildInfoCard(BuildContext context, String title, String content, IconData icon, {bool isWarning = false}) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final borderColor = isWarning ? Colors.orange.withValues(alpha: 0.5) : colorScheme.outlineVariant.withValues(alpha: 0.5);
+    final iconColor = isWarning ? Colors.orange : colorScheme.primary;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isWarning ? Colors.orange.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: colorScheme.primary),
+              Icon(icon, size: 18, color: iconColor),
               const SizedBox(width: 8),
               Text(
                 title.toUpperCase(),
                 style: TextStyle(
-                  color: colorScheme.primary,
+                  color: iconColor,
                   fontWeight: FontWeight.w900,
                   fontSize: 11,
                   letterSpacing: 1.2,
@@ -245,20 +256,74 @@ class TaskDetailScreen extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
-        if (report.status == 'assigned')
+        if (report.status == 'assigned' || report.status == 'on_hold')
           FilledButton.icon(
             onPressed: () => _updateStatus(context, 'in_progress'),
             icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text("Start Work"),
+            label: Text(report.status == 'on_hold' ? "Resume Work" : "Start Work"),
           ),
-        if (report.status == 'in_progress')
+        if (report.status == 'in_progress') ...[
           FilledButton.icon(
             onPressed: () => _updateStatus(context, 'closed'),
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFF10B981)),
             icon: const Icon(Icons.check_rounded),
             label: const Text("Mark as Resolved"),
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _showOnHoldDialog(context),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.orange,
+              side: const BorderSide(color: Colors.orange),
+            ),
+            icon: const Icon(Icons.pause_rounded),
+            label: const Text("Put on Hold"),
+          ),
+        ],
       ],
+    );
+  }
+
+  void _showOnHoldDialog(BuildContext context) {
+    final controller = TextEditingController();
+    final screenContext = context;
+    showDialog(
+      context: screenContext,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text("Put Task on Hold"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Please specify the reason why this task is being put on hold."),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: "Reason for Hold",
+                hintText: "e.g., Waiting for parts, Need more info...",
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                final reason = controller.text.trim();
+                Navigator.pop(dialogContext);
+                _updateStatus(screenContext, 'on_hold', onHoldReason: reason);
+              }
+            },
+            child: const Text("Confirm Hold"),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -276,6 +341,7 @@ class _StatusBadge extends StatelessWidget {
     switch (status) {
       case 'assigned': color = const Color(0xFF8B5CF6); label = 'TO DO'; break;
       case 'in_progress': color = const Color(0xFFF59E0B); label = 'IN PROGRESS'; break;
+      case 'on_hold': color = Colors.orange; label = 'ON HOLD'; break;
       case 'closed': color = const Color(0xFF10B981); label = 'COMPLETED'; break;
       default: color = Colors.grey; label = status.toUpperCase();
     }

@@ -200,6 +200,10 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
                 _buildInfoItem(context, "Location", widget.report.location),
                 const SizedBox(height: 16),
                 _buildInfoItem(context, "Incident Date", widget.report.reportDateTime.toString().split(' ')[0]),
+                if (widget.report.status == 'on_hold' && widget.report.onHoldReason != null) ...[
+                   const SizedBox(height: 16),
+                   _buildInfoItem(context, "Hold Reason", widget.report.onHoldReason!, isWarning: true),
+                ],
                 if (widget.report.managerComments != null && widget.report.managerComments!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildInfoItem(context, "Manager Feedback", widget.report.managerComments!),
@@ -280,13 +284,14 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
     );
   }
 
-  Widget _buildInfoItem(BuildContext context, String label, String value) {
+  Widget _buildInfoItem(BuildContext context, String label, String value, {bool isWarning = false}) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B))),
+        Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: isWarning ? Colors.orange : const Color(0xFF64748B))),
         const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.bodyLarge),
+        Text(value, style: textTheme.bodyLarge?.copyWith(color: isWarning ? Colors.orange : null)),
       ],
     );
   }
@@ -433,6 +438,7 @@ class _StatusBadge extends StatelessWidget {
       case 'open': color = const Color(0xFF3B82F6); label = 'OPEN'; break;
       case 'assigned': color = const Color(0xFF8B5CF6); label = 'ASSIGNED'; break;
       case 'in_progress': color = const Color(0xFFF59E0B); label = 'WORKING'; break;
+      case 'on_hold': color = Colors.orange; label = 'ON HOLD'; break;
       case 'closed': color = const Color(0xFF10B981); label = 'RESOLVED'; break;
       case 'archived': color = const Color(0xFF64748B); label = 'ARCHIVED'; break;
       default: color = Colors.grey; label = status.toUpperCase();

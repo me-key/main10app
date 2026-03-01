@@ -224,6 +224,7 @@ class _StatusSmallChip extends StatelessWidget {
       case 'open': color = Colors.blue; break;
       case 'assigned': color = Colors.purple; break;
       case 'in_progress': color = Colors.orange; break;
+      case 'on_hold': color = Colors.orange; break;
       case 'closed': color = Colors.green; break;
       default: color = Colors.grey;
     }

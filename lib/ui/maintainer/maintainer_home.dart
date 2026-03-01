@@ -104,6 +104,7 @@ class _MaintainerHomeState extends State<MaintainerHome> {
                 _buildFilterChip('All Tasks', 'all', Icons.dashboard_rounded),
                 _buildFilterChip('To Do', 'assigned', Icons.assignment_ind_rounded),
                 _buildFilterChip('In Progress', 'in_progress', Icons.construction_rounded),
+                _buildFilterChip('On Hold', 'on_hold', Icons.pause_circle_outline_rounded),
                 _buildFilterChip('Completed', 'closed', Icons.check_circle_outline_rounded),
               ],
             ),
@@ -316,6 +317,11 @@ class _StatusChip extends StatelessWidget {
         color = const Color(0xFFF59E0B); // Amber
         icon = Icons.construction_rounded;
         label = 'In Progress';
+        break;
+      case 'on_hold':
+        color = Colors.orange;
+        icon = Icons.pause_circle_outline_rounded;
+        label = 'On Hold';
         break;
       case 'closed': 
         color = const Color(0xFF10B981); // Emerald

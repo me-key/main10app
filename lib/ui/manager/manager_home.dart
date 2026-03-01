@@ -179,6 +179,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                 _buildFilterChip('Open', 'open', Icons.error_outline_rounded),
                 _buildFilterChip('Assigned', 'assigned', Icons.assignment_ind_rounded),
                 _buildFilterChip('Work in Progress', 'in_progress', Icons.construction_rounded),
+                _buildFilterChip('On Hold', 'on_hold', Icons.pause_circle_outline_rounded),
                 _buildFilterChip('Closed', 'closed', Icons.check_circle_outline_rounded),
               ],
             ),
@@ -393,6 +394,11 @@ class _StatusChip extends StatelessWidget {
         color = const Color(0xFFF59E0B); 
         icon = Icons.construction_rounded;
         label = 'Working';
+        break;
+      case 'on_hold':
+        color = Colors.orange;
+        icon = Icons.pause_circle_outline_rounded;
+        label = 'On Hold';
         break;
       case 'closed': 
         color = const Color(0xFF10B981); 
