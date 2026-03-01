@@ -11,6 +11,7 @@ import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
 import 'maintainer_tasks_screen.dart';
 import 'reporter_tasks_screen.dart';
+import 'location_tasks_screen.dart';
 
 class ManagerHome extends StatefulWidget {
   const ManagerHome({super.key});
@@ -118,6 +119,8 @@ class _ManagerHomeState extends State<ManagerHome> {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const MaintainerTasksScreen()));
               } else if (value == 'reporters') {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ReporterTasksScreen()));
+              } else if (value == 'locations') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const LocationTasksScreen()));
               }
             },
             itemBuilder: (context) => [
@@ -138,6 +141,16 @@ class _ManagerHomeState extends State<ManagerHome> {
                     Icon(Icons.person_pin_circle_rounded, color: colorScheme.primary),
                     const SizedBox(width: 12),
                     const Text("By Reporter"),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'locations',
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on_rounded, color: colorScheme.primary),
+                    const SizedBox(width: 12),
+                    const Text("By Location"),
                   ],
                 ),
               ),
