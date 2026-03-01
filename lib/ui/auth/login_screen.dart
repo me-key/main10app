@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
-import 'organization_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -288,16 +287,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       
                       const SizedBox(height: 24),
-                      if (kIsWeb)
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => const OrganizationSetupScreen()),
-                            );
-                          },
-                          child: const Text("Register New Organization"),
-                        ),
                     ],
                   ),
                 ),

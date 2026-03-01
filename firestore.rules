@@ -4,47 +4,52 @@ service cloud.firestore {
     
     // Helper function to check role
     function hasRole(role) {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
     // Helper function to get user's organization
     function getUserOrg() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) ? get(userPath).data.organizationId : null;
     }
 
     // Organizations collection
     match /organizations/{orgId} {
-      // Users can read their own organization
-      allow read: if request.auth != null && getUserOrg() == orgId;
+      // Users can read their own organization, Super Admin can read all
+      allow read: if request.auth != null && (getUserOrg() == orgId || hasRole('super_admin'));
       
-      // Allow any authenticated user to create a new organization (Onboarding flow)
-      allow create: if request.auth != null;
+      // Only Super Admin can create organizations
+      allow create: if hasRole('super_admin');
       
-      // Only admins can update/delete organizations
-      allow update, delete: if hasRole('admin');
+      // Only admins/super_admins can update/delete organizations
+      allow update, delete: if hasRole('admin') || hasRole('super_admin');
     }
 
     match /users/{userId} {
-      // Users can read their own profile
-      allow read: if request.auth != null && request.auth.uid == userId;
+      // Users can read their own profile, Super Admin can read all
+      allow read: if request.auth != null && (request.auth.uid == userId || hasRole('super_admin'));
       
       // Users can read other users in their organization
       allow read: if request.auth != null && resource.data.organizationId == getUserOrg();
       
-      // Allow users to create their own initial profile (Onboarding flow)
+      // Super Admin can create any user
       // OR Admins can create users in their organization
       allow create: if request.auth != null && (
-        request.auth.uid == userId || 
+        hasRole('super_admin') ||
         (hasRole('admin') && request.resource.data.organizationId == getUserOrg())
       );
       
-      // Admins can update users in their organization, but cannot change organizationId
-      allow update: if hasRole('admin') 
+      // Admins/Super Admins can update users
+      allow update: if hasRole('super_admin') || (
+                    hasRole('admin') 
                     && resource.data.organizationId == getUserOrg()
-                    && request.resource.data.organizationId == resource.data.organizationId;
+                    && request.resource.data.organizationId == resource.data.organizationId
+      );
       
-      // Admins can delete users in their organization
-      allow delete: if hasRole('admin') && resource.data.organizationId == getUserOrg();
+      // Admins/Super Admins can delete users
+      allow delete: if hasRole('super_admin') || (hasRole('admin') && resource.data.organizationId == getUserOrg());
     }
 
     match /reports/{reportId} {

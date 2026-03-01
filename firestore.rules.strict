@@ -4,12 +4,15 @@ service cloud.firestore {
     
     // Helper function to check role
     function hasRole(role) {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
     // Helper function to get user's organization
     function getUserOrg() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId;
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) ? get(userPath).data.organizationId : null;
     }
 
     // Organizations collection

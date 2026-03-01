@@ -28,6 +28,20 @@ class UserService {
     });
   }
 
+  // Get Admins in organization (Super Admin) - Limited
+  Stream<List<UserProfile>> getAdmins(String organizationId, {int limit = 50}) {
+    if (_firestore == null) return Stream.value([]);
+    return _firestore!
+        .collection(_collection)
+        .where('organizationId', isEqualTo: organizationId)
+        .where('role', isEqualTo: 'admin')
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => UserProfile.fromMap(doc.id, doc.data())).toList();
+    });
+  }
+
   // Get Maintainers in organization (Manager) - Limited
   Stream<List<UserProfile>> getMaintainers(String organizationId, {int limit = 50}) {
      if (_firestore == null) return Stream.value([]);

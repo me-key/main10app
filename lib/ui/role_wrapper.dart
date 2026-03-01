@@ -8,6 +8,7 @@ import 'reporter/reporter_home.dart';
 import 'maintainer/maintainer_home.dart';
 import 'manager/manager_home.dart';
 import 'admin/admin_home.dart';
+import 'super_admin/super_admin_screen.dart';
 import '../l10n/app_localizations.dart';
 
 class RoleWrapper extends StatefulWidget {
@@ -105,6 +106,7 @@ class _RoleWrapperState extends State<RoleWrapper> {
 
   Widget _buildHomeForRole(String role) {
     switch (role) {
+      case 'super_admin': return const SuperAdminScreen();
       case 'admin': return const AdminHome();
       case 'manager': return const ManagerHome();
       case 'maintainer': return const MaintainerHome();
