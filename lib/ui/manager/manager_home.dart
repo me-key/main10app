@@ -5,6 +5,12 @@ import '../../services/auth_service.dart';
 import '../../services/report_service.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'report_detail_manager_screen.dart';
+import '../widgets/responsive_center.dart';
+import 'manage_locations_screen.dart';
+import '../../services/user_service.dart';
+import '../../models/user_profile.dart';
+import 'maintainer_tasks_screen.dart';
+import 'reporter_tasks_screen.dart';
 
 class ManagerHome extends StatefulWidget {
   const ManagerHome({super.key});
@@ -14,110 +20,405 @@ class ManagerHome extends StatefulWidget {
 }
 
 class _ManagerHomeState extends State<ManagerHome> {
-  String _filterStatus = 'all'; // 'all', 'open', 'closed', 'archived'
-  Stream<List<Report>>? _reportStream;
+  String _filterStatus = 'all';
+  late Stream<List<Report>> _reportStream;
+  String? _organizationId;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _updateStream();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userId = authService.currentUserId;
+    if (userId != null) {
+      final profile = await authService.getUserProfile(userId);
+      if (profile != null && mounted) {
+        setState(() {
+          _organizationId = profile.organizationId;
+          _isLoading = false;
+        });
+        _updateStream();
+      }
+    }
   }
 
   void _updateStream() {
+    if (_organizationId == null) return;
     final reportService = Provider.of<ReportService>(context, listen: false);
     setState(() {
-      _reportStream = reportService.getReports(status: _filterStatus);
+      _reportStream = reportService.getReports(
+        _organizationId!,
+        status: _filterStatus == 'all' ? null : _filterStatus,
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final reportService = Provider.of<ReportService>(context, listen: false);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    if (_isLoading || _organizationId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Manager Dashboard"),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              authService.impersonatedProfile != null 
+                  ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
+                  : "Manager Dashboard",
+              style: textTheme.titleLarge,
+            ),
+            if (authService.impersonatedProfile == null)
+              Text(
+                "Overall maintenance activity",
+                style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
+              ),
+          ],
+        ),
         actions: [
+          if (authService.impersonatedProfile != null)
+             Padding(
+               padding: const EdgeInsets.only(right: 8.0),
+               child: IconButton.filledTonal(
+                 onPressed: () => authService.stopImpersonating(),
+                 icon: const Icon(Icons.stop_screen_share_rounded, size: 20),
+                 tooltip: "Stop Impersonating",
+               ),
+             ),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageLocationsScreen())),
+            icon: const Icon(Icons.location_on_rounded, size: 20),
+            tooltip: "Manage Locations",
+          ),
+          const SizedBox(width: 8),
+          PopupMenuButton<String>(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.bar_chart_rounded, size: 20, color: colorScheme.onSecondaryContainer),
+            ),
+            tooltip: "Task distribution",
+            onSelected: (value) {
+              if (value == 'maintainers') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MaintainerTasksScreen()));
+              } else if (value == 'reporters') {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ReporterTasksScreen()));
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'maintainers',
+                child: Row(
+                  children: [
+                    Icon(Icons.engineering_rounded, color: colorScheme.primary),
+                    const SizedBox(width: 12),
+                    const Text("By Maintainer"),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'reporters',
+                child: Row(
+                  children: [
+                    Icon(Icons.person_pin_circle_rounded, color: colorScheme.primary),
+                    const SizedBox(width: 12),
+                    const Text("By Reporter"),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
           const ThemeToggleButton(),
-          IconButton(onPressed: () => Provider.of<AuthService>(context, listen: false).signOut(), icon: const Icon(Icons.logout))
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: () => authService.signOut(), 
+            icon: const Icon(Icons.logout_rounded, size: 20),
+            tooltip: "Logout",
+          ),
+          const SizedBox(width: 16),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildFilterChip('All', 'all'),
-                _buildFilterChip('Open', 'open'),
-                _buildFilterChip('Closed', 'closed'),
-                _buildFilterChip('Archived', 'archived'),
+                _buildFilterChip('All Reports', 'all', Icons.dashboard_rounded),
+                _buildFilterChip('Open', 'open', Icons.error_outline_rounded),
+                _buildFilterChip('Assigned', 'assigned', Icons.assignment_ind_rounded),
+                _buildFilterChip('Work in Progress', 'in_progress', Icons.construction_rounded),
+                _buildFilterChip('Closed', 'closed', Icons.check_circle_outline_rounded),
               ],
             ),
           ),
         ),
       ),
-      body: StreamBuilder<List<Report>>(
-        stream: _reportStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+      body: ResponsiveCenter(
+        maxWidth: 1000,
+        child: StreamBuilder<List<Report>>(
+          stream: _reportStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline_rounded, color: colorScheme.error, size: 48),
+                      const SizedBox(height: 16),
+                      Text("Failed to load reports", style: textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text("${snapshot.error}", textAlign: TextAlign.center, style: textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final reports = snapshot.data ?? [];
+            
+            if (reports.isEmpty) {
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    Icon(Icons.search_off_rounded, size: 48, color: colorScheme.onSurface.withValues(alpha: 0.2)),
                     const SizedBox(height: 16),
-                    Text("Error: ${snapshot.error}", textAlign: TextAlign.center),
+                    Text("No reports match your filters", style: textTheme.bodyLarge),
                   ],
                 ),
-              ),
-            );
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final filteredReports = snapshot.data ?? [];
-          
-          if (filteredReports.isEmpty) {
-            return const Center(child: Text("No reports found."));
-          }
-
-          return ListView.builder(
-            itemCount: filteredReports.length,
-            itemBuilder: (context, index) {
-              final report = filteredReports[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                 child: ListTile(
-                   title: Text(report.title),
-                   subtitle: Text("Status: ${report.status.toUpperCase()}"),
-                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                   onTap: () {
-                     Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailManagerScreen(report: report)));
-                   },
-                 ),
               );
-            },
-          );
-        },
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              itemCount: reports.length,
+              itemBuilder: (context, index) {
+                final report = reports[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: _ManagerReportCard(report: report),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _filterStatus == value;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: FilterChip(
+        avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.5)),
         label: Text(label),
-        selected: _filterStatus == value,
+        selected: isSelected,
         onSelected: (selected) {
           if (_filterStatus != value) {
-            _filterStatus = value;
-            _updateStream();
+            setState(() {
+              _filterStatus = value;
+              _updateStream();
+            });
           }
         },
+        showCheckmark: false,
+        backgroundColor: Colors.transparent,
+        selectedColor: colorScheme.primary,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ManagerReportCard extends StatelessWidget {
+  final Report report;
+
+  const _ManagerReportCard({required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ReportDetailManagerScreen(report: report)));
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.report_problem_rounded, color: colorScheme.primary, size: 24),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          report.title,
+                          style: textTheme.titleMedium?.copyWith(height: 1.2),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Loc: ${report.location}",
+                          style: textTheme.bodySmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _StatusChip(status: report.status),
+                      if (report.assignedTo != null && (report.status == 'assigned' || report.status == 'in_progress'))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: FutureBuilder<UserProfile?>(
+                            future: Provider.of<UserService>(context, listen: false).getUserProfile(report.assignedTo!),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData && snapshot.data != null) {
+                                return Text(
+                                  "Assigned to: ${snapshot.data!.displayName}",
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String status;
+
+  const _StatusChip({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    IconData icon;
+    String label;
+
+    switch (status) {
+      case 'open': 
+        color = const Color(0xFF3B82F6); 
+        icon = Icons.error_outline_rounded;
+        label = 'Open';
+        break;
+      case 'assigned': 
+        color = const Color(0xFF8B5CF6); 
+        icon = Icons.assignment_ind_rounded;
+        label = 'Assigned';
+        break;
+      case 'in_progress': 
+        color = const Color(0xFFF59E0B); 
+        icon = Icons.construction_rounded;
+        label = 'Working';
+        break;
+      case 'closed': 
+        color = const Color(0xFF10B981); 
+        icon = Icons.check_circle_outline_rounded;
+        label = 'Resolved';
+        break;
+      case 'archived': 
+        color = const Color(0xFF64748B); 
+        icon = Icons.archive_outlined;
+        label = 'Archived';
+        break;
+      default: 
+        color = Colors.grey; 
+        icon = Icons.help_outline_rounded;
+        label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -19,7 +19,7 @@ class ReportService {
   }
 
   // Create
-  Future<void> createReport(Report report) async {
+  Future<String> createReport(Report report) async {
     if (_firestore == null) throw Exception("Backend not available");
     String id = report.id.isEmpty ? _firestore!.collection(_collection).doc().id : report.id;
     
@@ -29,14 +29,16 @@ class ReportService {
       const Duration(seconds: 10),
       onTimeout: () => throw TimeoutException('Report submission timed out. Please check your connection.'),
     );
+    return id;
   }
 
-  // Read (All reports for Manager/Admin - Filtered & Limited)
-  Stream<List<Report>> getReports({String? status, int limit = 50}) {
-    debugPrint('📊 getReports called (status=$status, limit=$limit)');
+  // Read (All reports for Manager/Admin in organization - Filtered & Limited)
+  Stream<List<Report>> getReports(String organizationId, {String? status, int limit = 50}) {
+    debugPrint('📊 getReports called (orgId=$organizationId, status=$status, limit=$limit)');
     if (_firestore == null) return Stream.value([]);
     
-    Query query = _firestore!.collection(_collection);
+    Query query = _firestore!.collection(_collection)
+        .where('organizationId', isEqualTo: organizationId);
 
     if (status != null && status != 'all') {
       query = query.where('status', isEqualTo: status);
@@ -74,15 +76,17 @@ class ReportService {
   //       .map((snapshot) => snapshot.docs.map((doc) => Report.fromSnapshot(doc)).toList());
   // }
 
-    // Read (Reporter's reports)
+    // Read (Reporter's reports in organization)
   Stream<List<Report>> getReportsForReporter(
-    String uid, {
+    String uid,
+    String organizationId, {
     int limit = 50,
   }) {
     if (_firestore == null) return const Stream.empty();
 
     return _firestore!
         .collection(_collection)
+        .where('organizationId', isEqualTo: organizationId)
         .where('reporterId', isEqualTo: uid)
         .where('status', isNotEqualTo: 'archived')
         .orderBy('createdAt', descending: true)
@@ -103,12 +107,13 @@ class ReportService {
 
 
 
-// Read (Assigned reports for Maintainer)
+// Read (Assigned reports for Maintainer in organization)
 Stream<List<Report>> getReportsForMaintainer(
-  String uid, {
+  String uid,
+  String organizationId, {
   int limit = 50,
 }) {
-  debugPrint('🟢 getReportsForMaintainer called (uid=$uid, limit=$limit)');
+  debugPrint('🟢 getReportsForMaintainer called (uid=$uid, orgId=$organizationId, limit=$limit)');
 
   if (_firestore == null) {
     debugPrint('⚠️ Firestore is null, returning empty stream');
@@ -117,6 +122,7 @@ Stream<List<Report>> getReportsForMaintainer(
 
   return _firestore!
       .collection(_collection)
+      .where('organizationId', isEqualTo: organizationId)
       .where('assignedTo', isEqualTo: uid)
       .limit(limit)
       .snapshots()
@@ -141,11 +147,12 @@ Stream<List<Report>> getReportsForMaintainer(
       });
 }
   
-  // Read (Filtered by status)
-  Stream<List<Report>> getReportsByStatus(String status) {
+  // Read (Filtered by status in organization)
+  Stream<List<Report>> getReportsByStatus(String organizationId, String status) {
      if (_firestore == null) return Stream.value([]);
      return _firestore!
         .collection(_collection)
+        .where('organizationId', isEqualTo: organizationId)
         .where('status', isEqualTo: status)
         .orderBy('createdAt', descending: true)
         .snapshots()

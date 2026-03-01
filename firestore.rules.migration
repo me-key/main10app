@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // TEMPORARY MIGRATION RULES
+    // These rules are VERY PERMISSIVE to allow the migration script to run
+    // IMPORTANT: Replace with the strict rules after migration is complete!
+    
+    // Helper function to check role
+    function hasRole(role) {
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    // Organizations collection - admins can do anything
+    match /organizations/{orgId} {
+      allow read, write: if request.auth != null && hasRole('admin');
+    }
+
+    // Users collection - admins can do anything
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && hasRole('admin');
+    }
+
+    // Reports collection - admins can do anything
+    match /reports/{reportId} {
+      allow read, write: if request.auth != null;
+      
+      // Audit logs subcollection
+      match /audit_logs/{logId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Locations collection - admins can do anything
+    match /locations/{locationId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -1,8 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../services/auth_service.dart';
-
 import '../widgets/responsive_center.dart';
+import 'organization_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,168 +19,319 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-  bool _isLogin = true;
-
   void _submit() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     
-    User? user;
-    if (_isLogin) {
-      user = await _auth.signIn(
+    try {
+      User? user = await _auth.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-    } else {
-      // Sign Up (Default to Reporter role)
-      await _auth.createUser(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-        'reporter',
-        'New Reporter', // Placeholder name
-        '1234567890', // Placeholder phone number
-      );
-      user = FirebaseAuth.instance.currentUser; 
-    }
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
 
-    if (user != null) {
-      print("Logged in: ${user.email}");
-    } else {
-      setState(() {
-        _errorMessage = _isLogin ? "Login failed. Check credentials." : "Sign Up failed. Email might be in use.";
-      });
+        if (user == null) {
+          setState(() {
+            _errorMessage = "Invalid email or password. Please try again.";
+          });
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.message ?? "An authentication error occurred.";
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = "An unexpected error occurred. Please try again.";
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primaryContainer,
-            ],
-          ),
-        ),
-        child: ResponsiveCenter(
-          child: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo or Icon
-                  Icon(
-                    Icons.handyman_rounded,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    "FixIt-Pro",
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                   const SizedBox(height: 8),
-                  Text(
-                    _isLogin ? "Welcome back!" : "Create your account",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-                  
-                  // Login Card
-                  Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (_errorMessage != null)
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              margin: const EdgeInsets.only(bottom: 24),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.errorContainer,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _errorMessage!,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onErrorContainer,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          
-                          TextField(
-                            controller: _emailController,
-                            decoration: const InputDecoration(
-                              labelText: "Email Address",
-                              prefixIcon: Icon(Icons.email_outlined),
-                            ),
-                            keyboardType: TextInputType.emailAddress,
-                          ),
-                          const SizedBox(height: 20),
-                          TextField(
-                            controller: _passwordController,
-                            decoration: const InputDecoration(
-                              labelText: "Password",
-                              prefixIcon: Icon(Icons.lock_outline),
-                            ),
-                            obscureText: true,
-                          ),
-                          const SizedBox(height: 32),
-                          SizedBox(
-                            height: 56,
-                            child: FilledButton(
-                              onPressed: _isLoading ? null : _submit,
-                              style: FilledButton.styleFrom(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                              child: _isLoading 
-                                ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)) 
-                                : Text(_isLogin ? "Login" : "Create Account", style: const TextStyle(fontSize: 18)),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Center(
-                            child: TextButton(
-                              onPressed: () => setState(() {
-                                _isLogin = !_isLogin;
-                                _errorMessage = null; 
-                              }),
-                              style: TextButton.styleFrom(
-                                foregroundColor: Theme.of(context).colorScheme.primary,
-                              ),
-                              child: Text(_isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"),
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Background decoration
+          Positioned.fill(
+            child: Container(
+              color: colorScheme.surface,
+              child: CustomPaint(
+                painter: BackgroundPainter(
+                  primaryColor: colorScheme.primary.withValues(alpha: 0.05),
+                  secondaryColor: colorScheme.secondary.withValues(alpha: 0.05),
+                ),
               ),
             ),
           ),
-        ),
+          
+          SafeArea(
+            child: ResponsiveCenter(
+              maxWidth: 450,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header Section
+                      Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.shadow.withValues(alpha: 0.1),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.handyman_rounded,
+                              size: 48,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            "FixIt-Pro",
+                            style: textTheme.displaySmall?.copyWith(
+                              color: colorScheme.onSurface,
+                              letterSpacing: -1,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Sign in to your account",
+                            style: textTheme.bodyLarge?.copyWith(
+                              color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 48),
+                      
+                      // Authentication Card
+                      Container(
+                        padding: const EdgeInsets.all(32),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colorScheme.shadow.withValues(alpha: 0.08),
+                              blurRadius: 32,
+                              offset: const Offset(0, 12),
+                            ),
+                          ],
+                        ),
+                        child: AutofillGroup(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (_errorMessage != null) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.errorContainer,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.error_outline, size: 20, color: colorScheme.error),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _errorMessage!,
+                                          style: textTheme.bodyMedium?.copyWith(
+                                            color: colorScheme.error,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                              
+                              Text(
+                                "Email Address",
+                                style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                  hintText: "name@example.com",
+                                  prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerLowest,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [AutofillHints.email],
+                              ),
+                              
+                              const SizedBox(height: 24),
+                              
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Password",
+                                    style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {},
+                                    style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    child: const Text("Forgot password?"),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: _passwordController,
+                                decoration: InputDecoration(
+                                  hintText: "••••••••",
+                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                  filled: true,
+                                  fillColor: colorScheme.surfaceContainerLowest,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                                  ),
+                                ),
+                                obscureText: true,
+                                autofillHints: const [AutofillHints.password],
+                                onSubmitted: (_) => _submit(),
+                              ),
+                              
+                              const SizedBox(height: 32),
+                              
+                              FilledButton(
+                                onPressed: _isLoading ? null : _submit,
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                ),
+                                child: _isLoading 
+                                  ? const SizedBox(
+                                      height: 20, 
+                                      width: 20, 
+                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)
+                                    ) 
+                                  : const Text("Sign In", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      Center(
+                        child: Text(
+                          "Restricted Access\nOnly authorized personnel may access this system.",
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      if (kIsWeb)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const OrganizationSetupScreen()),
+                            );
+                          },
+                          child: const Text("Register New Organization"),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class BackgroundPainter extends CustomPainter {
+  final Color primaryColor;
+  final Color secondaryColor;
+
+  BackgroundPainter({required this.primaryColor, required this.secondaryColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..style = PaintingStyle.fill;
+
+    // Draw some subtle decorative circles
+    paint.color = primaryColor;
+    canvas.drawCircle(Offset(size.width * 0.1, size.height * 0.1), 200, paint);
+    
+    paint.color = secondaryColor;
+    canvas.drawCircle(Offset(size.width * 0.9, size.height * 0.9), 300, paint);
+    
+    paint.color = primaryColor.withValues(alpha: 0.02);
+    canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), 150, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

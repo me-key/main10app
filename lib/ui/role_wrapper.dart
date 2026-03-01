@@ -46,43 +46,70 @@ class _RoleWrapperState extends State<RoleWrapper> {
         }
         
         // Fetch role from Firestore
-        return FutureBuilder<UserProfile?>(
-          future: _profileFuture,
-          builder: (context, profileSnapshot) {
-             if (profileSnapshot.connectionState == ConnectionState.waiting) {
-               return const Scaffold(body: Center(child: CircularProgressIndicator()));
-             }
-             
-             final profile = profileSnapshot.data;
-             if (profile == null) {
-                // Fallback if no profile
-                return Scaffold(
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Error: User profile not found"),
-                        TextButton(
-                          onPressed: () => authService.signOut(), 
-                          child: const Text("Logout")
-                        )
-                      ],
-                    )
-                  )
-                );
-             }
+        return StreamBuilder<UserProfile?>(
+          stream: authService.impersonationChanges,
+          builder: (context, impersonationSnapshot) {
+            final impersonatedProfile = impersonationSnapshot.data ?? authService.impersonatedProfile;
+            
+            if (impersonatedProfile != null) {
+              return _buildHomeForRole(impersonatedProfile.role);
+            }
 
-             switch (profile.role) {
-               case 'admin': return const AdminHome();
-               case 'manager': return const ManagerHome();
-               case 'maintainer': return const MaintainerHome();
-               case 'reporter': 
-               default:
-                 return const ReporterHome();
-             }
+            return FutureBuilder<UserProfile?>(
+              future: _profileFuture,
+              builder: (context, profileSnapshot) {
+                if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                }
+                
+                final profile = profileSnapshot.data;
+                if (profile == null) {
+                    // Fallback if no profile
+                    return Scaffold(
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.account_circle_outlined, size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Account Issue",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Your account profile is missing or has been deleted.\nPlease contact an administrator.",
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            FilledButton.icon(
+                              onPressed: () => authService.signOut(), 
+                              icon: const Icon(Icons.logout),
+                              label: const Text("Logout"),
+                            )
+                          ],
+                        )
+                      )
+                    );
+                }
+
+                return _buildHomeForRole(profile.role);
+              },
+            );
           },
         );
       },
     );
+  }
+
+  Widget _buildHomeForRole(String role) {
+    switch (role) {
+      case 'admin': return const AdminHome();
+      case 'manager': return const ManagerHome();
+      case 'maintainer': return const MaintainerHome();
+      case 'reporter': 
+      default:
+        return const ReporterHome();
+    }
   }
 }

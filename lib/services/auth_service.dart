@@ -1,11 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 import '../models/user_profile.dart';
+import '../firebase_options.dart';
 
 class AuthService {
   final FirebaseAuth? _auth;
   final FirebaseFirestore? _firestore;
+
+  UserProfile? _impersonatedProfile;
+  final _impersonationController = StreamController<UserProfile?>.broadcast();
 
   AuthService() 
       : _auth = _tryGetAuth(),
@@ -37,6 +42,22 @@ class AuthService {
   User? get currentUser => _auth?.currentUser;
   
   String? get currentUserId => _auth?.currentUser?.uid;
+
+  // Impersonation
+  UserProfile? get impersonatedProfile => _impersonatedProfile;
+  Stream<UserProfile?> get impersonationChanges => _impersonationController.stream;
+
+  void loginAs(UserProfile profile) {
+    print("AuthService: Impersonating user ${profile.displayName} (${profile.uid})");
+    _impersonatedProfile = profile;
+    _impersonationController.add(_impersonatedProfile);
+  }
+
+  void stopImpersonating() {
+    print("AuthService: Stopping impersonation");
+    _impersonatedProfile = null;
+    _impersonationController.add(null);
+  }
 
   Future<UserProfile?> getUserProfile(String uid) async {
     if (_firestore == null) return null;
@@ -92,11 +113,28 @@ class AuthService {
         email: email,
         password: password,
       );
+      
+      // Check if user profile exists in Firestore
+      final user = result.user;
+      if (user != null) {
+         final profile = await getUserProfile(user.uid);
+         if (profile == null) {
+           print("AuthService: User authenticated but no profile found (deleted user). Signing out.");
+           await _auth!.signOut();
+           throw FirebaseAuthException(
+             code: 'user-deleted',
+             message: 'This user account has been deleted.',
+           );
+         }
+      }
+
       print("AuthService: Sign in successful in ${stopwatch.elapsedMilliseconds}ms");
       return result.user;
     } catch (e) {
       print("AuthService: Sign in failed after ${stopwatch.elapsedMilliseconds}ms. Error: $e");
-      return null;
+      
+      // Rethrow so UI can handle it
+      rethrow;
     }
   }
 
@@ -104,21 +142,52 @@ class AuthService {
     if (_auth != null) await _auth!.signOut();
   }
   
-  Future<void> createUser(String email, String password, String role, String name, String phoneNumber) async {
+  Future<void> createUser(String email, String password, String role, String name, String phoneNumber, String organizationId) async {
       if (_auth == null || _firestore == null) return;
       try {
-        UserCredential result = await _auth!.createUserWithEmailAndPassword(email: email, password: password);
-        User? user = result.user;
-        if (user != null) {
-          await _firestore!.collection('users').doc(user.uid).set({
-            'email': email,
-            'displayName': name,
-            'role': role,
-            'phoneNumber': phoneNumber,
-          });
+        // To avoid automatically logging in as the new user, we use a secondary Firebase App instance.
+        final appName = 'TempApp_${DateTime.now().millisecondsSinceEpoch}';
+        FirebaseApp tempApp = await Firebase.initializeApp(
+          name: appName,
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        
+        try {
+          FirebaseAuth tempAuth = FirebaseAuth.instanceFor(app: tempApp);
+          UserCredential result = await tempAuth.createUserWithEmailAndPassword(email: email, password: password);
+          User? user = result.user;
+          
+          if (user != null) {
+            await _firestore!.collection('users').doc(user.uid).set({
+              'email': email,
+              'displayName': name,
+              'role': role,
+              'phoneNumber': phoneNumber,
+              'organizationId': organizationId,
+            });
+          }
+        } finally {
+          await tempApp.delete();
         }
       } catch (e) {
-        print(e);
+        print("AuthService: Error creating user: $e");
+        rethrow;
       }
+  }
+
+  // Sign up a new user and sign them in (Main App Instance)
+  // Used for Organization Setup / Self-Signup
+  Future<User?> signUp(String email, String password) async {
+    try {
+      if (_auth == null) return null;
+      UserCredential result = await _auth!.createUserWithEmailAndPassword(
+        email: email, 
+        password: password
+      );
+      return result.user;
+    } catch (e) {
+      print("AuthService: Error signing up: $e");
+      rethrow;
+    }
   }
 }

@@ -5,6 +5,7 @@ class UserProfile {
   final String displayName;
   final String role; // 'admin', 'manager', 'maintainer', 'reporter'
   final String phoneNumber;
+  final String organizationId;
 
   UserProfile({
     required this.uid,
@@ -12,6 +13,7 @@ class UserProfile {
     required this.displayName,
     required this.role,
     this.phoneNumber = '',
+    required this.organizationId,
   });
 
   factory UserProfile.fromMap(String uid, Map<String, dynamic> data) {
@@ -21,6 +23,7 @@ class UserProfile {
       displayName: data['displayName'] ?? '',
       role: data['role'] ?? 'reporter',
       phoneNumber: data['phoneNumber'] ?? '',
+      organizationId: data['organizationId'] ?? '',
     );
   }
 
@@ -30,6 +33,7 @@ class UserProfile {
       'displayName': displayName,
       'role': role,
       'phoneNumber': phoneNumber,
+      'organizationId': organizationId,
     };
   }
 

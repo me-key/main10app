@@ -6,6 +6,9 @@ import 'theme.dart';
 import 'services/auth_service.dart';
 import 'services/report_service.dart';
 import 'services/user_service.dart';
+import 'services/storage_service.dart';
+import 'services/location_service.dart';
+import 'services/audit_service.dart';
 import 'providers/theme_provider.dart';
 import 'ui/role_wrapper.dart';
 
@@ -30,6 +33,9 @@ void main() async {
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<ReportService>(create: (_) => ReportService()),
         Provider<UserService>(create: (_) => UserService()),
+        Provider<StorageService>(create: (_) => StorageService()),
+        Provider<LocationService>(create: (_) => LocationService()),
+        Provider<AuditService>(create: (_) => AuditService()),
       ],
       child: const FixItProApp(),
     ),

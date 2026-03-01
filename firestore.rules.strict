@@ -16,12 +16,8 @@ service cloud.firestore {
     match /organizations/{orgId} {
       // Users can read their own organization
       allow read: if request.auth != null && getUserOrg() == orgId;
-      
-      // Allow any authenticated user to create a new organization (Onboarding flow)
-      allow create: if request.auth != null;
-      
-      // Only admins can update/delete organizations
-      allow update, delete: if hasRole('admin');
+      // Only admins can create/update/delete organizations
+      allow write: if hasRole('admin');
     }
 
     match /users/{userId} {
@@ -31,12 +27,8 @@ service cloud.firestore {
       // Users can read other users in their organization
       allow read: if request.auth != null && resource.data.organizationId == getUserOrg();
       
-      // Allow users to create their own initial profile (Onboarding flow)
-      // OR Admins can create users in their organization
-      allow create: if request.auth != null && (
-        request.auth.uid == userId || 
-        (hasRole('admin') && request.resource.data.organizationId == getUserOrg())
-      );
+      // Admins can manage users in their organization only
+      allow create: if hasRole('admin') && request.resource.data.organizationId == getUserOrg();
       
       // Admins can update users in their organization, but cannot change organizationId
       allow update: if hasRole('admin') 
