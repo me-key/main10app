@@ -54,7 +54,7 @@ class FixItProApp extends StatelessWidget {
     return Consumer2<ThemeProvider, LocaleProvider>(
       builder: (context, themeProvider, localeProvider, child) {
         return MaterialApp(
-          title: 'FixIt-Pro',
+          onGenerateTitle: (context) => AppLocalizations.of(context).get('app_title'),
           theme: appTheme,
           darkTheme: appDarkTheme,
           themeMode: themeProvider.themeMode,

@@ -67,7 +67,7 @@ class _MaintainerHomeState extends State<MaintainerHome> {
           children: [
             Text(
               authService.impersonatedProfile != null 
-                  ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
+                  ? "${l10n.get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 
                   : l10n.get('my_tasks'),
               style: textTheme.titleLarge,
             ),
@@ -91,7 +91,7 @@ class _MaintainerHomeState extends State<MaintainerHome> {
                child: IconButton.filledTonal(
                  onPressed: () => authService.stopImpersonating(),
                  icon: const Icon(Icons.stop_screen_share_rounded, size: 20),
-                 tooltip: "Stop Impersonating",
+                 tooltip: l10n.get('stop_impersonating'),
                ),
              ),
           const ThemeToggleButton(),
@@ -127,7 +127,7 @@ class _MaintainerHomeState extends State<MaintainerHome> {
           stream: reportService.getReportsForMaintainer(user.uid, _organizationId!, status: _filterStatus),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              return Center(child: Text("${l10n.get('error_loading_reports')}: ${snapshot.error}"));
             }
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

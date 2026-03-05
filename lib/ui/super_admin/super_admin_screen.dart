@@ -8,6 +8,7 @@ import '../../models/organization.dart';
 import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
 
 class SuperAdminScreen extends StatefulWidget {
   const SuperAdminScreen({super.key});
@@ -51,7 +52,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
 
   Future<void> _registerOrg() async {
     if (_orgNameController.text.trim().isEmpty) {
-      setState(() => _errorMessage = "Organization name is required");
+      setState(() => _errorMessage = AppLocalizations.of(context).get('required'));
       return;
     }
 
@@ -76,14 +77,14 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
           _selectedOrgId = orgId;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Organization registered! ID: $orgId")),
+          SnackBar(content: Text("${AppLocalizations.of(context).get('org_registered_notification')} ID: $orgId")),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingOrg = false;
-          _errorMessage = "Organization registration failed: $e";
+          _errorMessage = "${AppLocalizations.of(context).get('org_reg_failed')}: $e";
         });
       }
     }
@@ -92,7 +93,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
   Future<void> _createAdmin() async {
     final orgId = _selectedOrgId ?? _createdOrgId;
     if (orgId == null) {
-      setState(() => _errorMessage = "Please select or create an organization first");
+      setState(() => _errorMessage = AppLocalizations.of(context).get('select_org_first'));
       return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -121,8 +122,8 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Admin created successfully!"),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).get('admin_created_success')),
             backgroundColor: Colors.green,
           ),
         );
@@ -131,7 +132,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
       if (mounted) {
         setState(() {
           _isLoadingAdmin = false;
-          _errorMessage = "Admin creation failed: $e";
+          _errorMessage = "${AppLocalizations.of(context).get('admin_creation_failed')}: $e";
         });
       }
     }
@@ -158,7 +159,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Super Admin Console"),
+        title: Text(AppLocalizations.of(context).get('super_admin_console')),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -208,11 +209,11 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16.0),
+        Padding(
+          padding: const EdgeInsets.all(16.0),
           child: Text(
-            "ORGANIZATIONS",
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+            AppLocalizations.of(context).get('organizations_label'),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
           ),
         ),
         Expanded(
@@ -223,7 +224,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text("No organizations found"));
+                return Center(child: Text(AppLocalizations.of(context).get('no_organizations_found')));
               }
 
               final orgs = snapshot.data!;
@@ -251,7 +252,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: org.id));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("ID copied to clipboard"), duration: Duration(seconds: 1)),
+                          SnackBar(content: Text(AppLocalizations.of(context).get('id_copied')), duration: const Duration(seconds: 1)),
                         );
                       },
                     ),
@@ -273,25 +274,25 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildSectionHeader("Phase 1: Organization Creation"),
+          _buildSectionHeader(AppLocalizations.of(context).get('phase_1_org_creation')),
           const SizedBox(height: 16),
           TextFormField(
             controller: _orgNameController,
             enabled: _createdOrgId == null && _selectedOrgId == null,
-            decoration: const InputDecoration(
-              labelText: "Organization Name",
-              prefixIcon: Icon(Icons.business),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('org_name_label'),
+              prefixIcon: const Icon(Icons.business),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _orgDescController,
             enabled: _createdOrgId == null && _selectedOrgId == null,
-            decoration: const InputDecoration(
-              labelText: "Description",
-              prefixIcon: Icon(Icons.description),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('org_desc_label'),
+              prefixIcon: const Icon(Icons.description),
+              border: const OutlineInputBorder(),
             ),
             maxLines: 2,
           ),
@@ -302,21 +303,21 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
               icon: _isLoadingOrg 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Icon(_createdOrgId != null ? Icons.check : Icons.add_business),
-              label: Text(_createdOrgId != null ? "Organization Created" : "Create New Organization"),
+              label: Text(_createdOrgId != null ? AppLocalizations.of(context).get('org_created_msg') : AppLocalizations.of(context).get('create_new_org')),
             )
           else
-            const Card(
+            Card(
               color: Colors.blueGrey,
               child: Padding(
-                padding: EdgeInsets.all(12.0),
+                padding: const EdgeInsets.all(12.0),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.white),
-                    SizedBox(width: 12),
+                    const Icon(Icons.info_outline, color: Colors.white),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "You are adding an admin to an existing organization.",
-                        style: TextStyle(color: Colors.white),
+                        AppLocalizations.of(context).get('existing_org_info'),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ],
@@ -325,31 +326,31 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
             ),
           
           const SizedBox(height: 32),
-          _buildSectionHeader("Phase 2: Root Admin Assignment"),
+          _buildSectionHeader(AppLocalizations.of(context).get('phase_2_admin_assignment')),
           if (effectiveOrgId != null)
              Padding(
                padding: const EdgeInsets.only(bottom: 16.0),
-               child: Text("Assigning to ID: $effectiveOrgId", style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+               child: Text("${AppLocalizations.of(context).get('assigning_to_id')}: $effectiveOrgId", style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
              ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _adminNameController,
             enabled: effectiveOrgId != null && !_isAdminCreated,
-            decoration: const InputDecoration(
-              labelText: "Admin Full Name",
-              prefixIcon: Icon(Icons.person),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('admin_full_name'),
+              prefixIcon: const Icon(Icons.person),
+              border: const OutlineInputBorder(),
             ),
-            validator: (value) => value == null || value.isEmpty ? "Required" : null,
+            validator: (value) => value == null || value.isEmpty ? AppLocalizations.of(context).get('required') : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _adminEmailController,
             enabled: effectiveOrgId != null && !_isAdminCreated,
-            decoration: const InputDecoration(
-              labelText: "Admin Login Email",
-              prefixIcon: Icon(Icons.email),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('admin_login_email'),
+              prefixIcon: const Icon(Icons.email),
+              border: const OutlineInputBorder(),
             ),
             validator: (value) => (value == null || !value.contains('@')) ? "Invalid email" : null,
           ),
@@ -357,20 +358,20 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
           TextFormField(
             controller: _adminPhoneController,
             enabled: effectiveOrgId != null && !_isAdminCreated,
-            decoration: const InputDecoration(
-              labelText: "Phone Number",
-              prefixIcon: Icon(Icons.phone),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('phone_number'),
+              prefixIcon: const Icon(Icons.phone),
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _adminPasswordController,
             enabled: effectiveOrgId != null && !_isAdminCreated,
-            decoration: const InputDecoration(
-              labelText: "Root Password",
-              prefixIcon: Icon(Icons.lock),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('root_password'),
+              prefixIcon: const Icon(Icons.lock),
+              border: const OutlineInputBorder(),
             ),
             obscureText: true,
           ),
@@ -380,7 +381,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
             icon: _isLoadingAdmin 
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.person_add),
-            label: const Text("Deploy Admin Account"),
+            label: Text(AppLocalizations.of(context).get('deploy_admin_account')),
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 20),
             ),
@@ -409,7 +410,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader("Current Administrators"),
+        _buildSectionHeader(AppLocalizations.of(context).get('current_administrators')),
         const SizedBox(height: 16),
         StreamBuilder<List<UserProfile>>(
           stream: _userService.getAdmins(orgId),
@@ -424,11 +425,11 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
                   color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.grey),
-                    SizedBox(width: 12),
-                    Text("No administrators found for this organization.", style: TextStyle(color: Colors.grey)),
+                    const Icon(Icons.info_outline, color: Colors.grey),
+                    const SizedBox(width: 12),
+                    Text(AppLocalizations.of(context).get('no_admins_found'), style: const TextStyle(color: Colors.grey)),
                   ],
                 ),
               );

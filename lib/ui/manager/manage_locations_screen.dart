@@ -4,6 +4,7 @@ import '../../models/location.dart';
 import '../../services/location_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageLocationsScreen extends StatefulWidget {
   const ManageLocationsScreen({super.key});
@@ -48,34 +49,36 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error adding location: $e")),
+          SnackBar(content: Text("${l10n.get('error_adding_location')}: $e")),
         );
       }
     }
   }
 
   void _showAddDialog() {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Add New Location"),
+        title: Text(l10n.get('add_new_location')),
         content: TextField(
           controller: _nameController,
-          decoration: const InputDecoration(
-            hintText: "e.g., Room 101, Lobby, etc.",
-            labelText: "Location Name",
+          decoration: InputDecoration(
+            hintText: l10n.get('location_name_hint'),
+            labelText: l10n.get('location_name_label'),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text("Cancel"),
+            child: Text(l10n.get('cancel')),
           ),
           FilledButton(
             onPressed: _addLocation,
-            child: const Text("Add"),
+            child: Text(l10n.get('add')),
           ),
         ],
       ),
@@ -83,20 +86,21 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
   }
 
   Future<void> _deleteLocation(Location location) async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Location"),
-        content: Text("Are you sure you want to delete '${location.name}'?"),
+        title: Text(l10n.get('delete_location_title')),
+        content: Text("${l10n.get('delete_location_confirm')} '${location.name}'?"),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Cancel"),
+            child: Text(l10n.get('cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text("Delete"),
+            child: Text(l10n.get('delete')),
           ),
         ],
       ),
@@ -108,8 +112,9 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
         await locationService.deleteLocation(location.id);
       } catch (e) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Error deleting location: $e")),
+            SnackBar(content: Text("${l10n.get('error_deleting_location')}: $e")),
           );
         }
       }
@@ -118,6 +123,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationService = Provider.of<LocationService>(context, listen: false);
     if (_isLoading || _organizationId == null) {
       return const Scaffold(
         appBar: null,
@@ -125,11 +131,11 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       );
     }
 
-    final locationService = Provider.of<LocationService>(context);
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Manage Locations"),
+        title: Text(l10n.get('manage_locations')),
       ),
       body: ResponsiveCenter(
         maxWidth: 800,
@@ -152,12 +158,12 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
                   children: [
                     Icon(Icons.location_off_rounded, size: 64, color: Colors.grey.withOpacity(0.5)),
                     const SizedBox(height: 16),
-                    const Text("No locations added yet."),
+                    Text(l10n.get('no_locations_yet')),
                     const SizedBox(height: 24),
                     FilledButton.icon(
                       onPressed: _showAddDialog,
                       icon: const Icon(Icons.add),
-                      label: const Text("Add First Location"),
+                      label: Text(l10n.get('add_first_location')),
                     ),
                   ],
                 ),

@@ -61,13 +61,13 @@ class _AdminHomeState extends State<AdminHome> {
           children: [
             Text(
               authService.impersonatedProfile != null 
-                  ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
+                  ? "${AppLocalizations.of(context).get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 
                   : AppLocalizations.of(context).get('user_management'),
               style: textTheme.titleLarge,
             ),
             if (authService.impersonatedProfile == null)
               Text(
-                "Manage application users and roles",
+                AppLocalizations.of(context).get('manage_users_roles'),
                 style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.5)),
               ),
           ],
@@ -85,7 +85,7 @@ class _AdminHomeState extends State<AdminHome> {
                child: IconButton.filledTonal(
                  onPressed: () => authService.stopImpersonating(),
                  icon: const Icon(Icons.stop_screen_share_rounded, size: 20),
-                 tooltip: "Stop Impersonating",
+                 tooltip: AppLocalizations.of(context).get('stop_impersonating'),
                ),
              ),
           const ThemeToggleButton(),
@@ -93,7 +93,7 @@ class _AdminHomeState extends State<AdminHome> {
           IconButton.filledTonal(
             onPressed: () => authService.signOut(), 
             icon: const Icon(Icons.logout_rounded, size: 20),
-            tooltip: "Logout",
+            tooltip: AppLocalizations.of(context).get('logout'),
           ),
           const SizedBox(width: 16),
         ],
@@ -106,11 +106,11 @@ class _AdminHomeState extends State<AdminHome> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildFilterChip('All Users', 'all', Icons.people_rounded),
-                _buildFilterChip('Admins', 'admin', Icons.admin_panel_settings_rounded),
-                _buildFilterChip('Managers', 'manager', Icons.manage_accounts_rounded),
-                _buildFilterChip('Maintainers', 'maintainer', Icons.engineering_rounded),
-                _buildFilterChip('Reporters', 'reporter', Icons.person_pin_circle_rounded),
+                _buildFilterChip(AppLocalizations.of(context).get('all_users'), 'all', Icons.people_rounded),
+                _buildFilterChip(AppLocalizations.of(context).get('admins'), 'admin', Icons.admin_panel_settings_rounded),
+                _buildFilterChip(AppLocalizations.of(context).get('managers'), 'manager', Icons.manage_accounts_rounded),
+                _buildFilterChip(AppLocalizations.of(context).get('maintainers'), 'maintainer', Icons.engineering_rounded),
+                _buildFilterChip(AppLocalizations.of(context).get('reporters'), 'reporter', Icons.person_pin_circle_rounded),
               ],
             ),
           ),
@@ -125,7 +125,7 @@ class _AdminHomeState extends State<AdminHome> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              return Center(child: Text("${AppLocalizations.of(context).get('account_issue')}: ${snapshot.error}"));
             }
             final allUsers = snapshot.data ?? [];
             final users = _filterRole == 'all' 
@@ -151,7 +151,7 @@ class _AdminHomeState extends State<AdminHome> {
            Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageUserScreen()));
         },
         icon: const Icon(Icons.person_add_rounded),
-        label: const Text("Add User"),
+        label: Text(AppLocalizations.of(context).get('add_user')),
       ),
     );
   }
@@ -240,7 +240,7 @@ class _UserCard extends StatelessWidget {
                              color: colorScheme.primaryContainer,
                              borderRadius: BorderRadius.circular(4),
                            ),
-                           child: Text("YOU", style: textTheme.labelSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
+                           child: Text(AppLocalizations.of(context).get('you_label'), style: textTheme.labelSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold)),
                          ),
                        ],
                      ],
@@ -258,12 +258,12 @@ class _UserCard extends StatelessWidget {
               children: [
                 if (!isCurrentUser)
                   IconButton(
-                    tooltip: "Login as this user",
+                    tooltip: AppLocalizations.of(context).get('login_as_user'),
                     icon: const Icon(Icons.login_rounded, color: Colors.green, size: 20),
                     onPressed: () => authService.loginAs(user),
                   ),
                 IconButton(
-                  tooltip: "Edit user",
+                  tooltip: AppLocalizations.of(context).get('edit_user'),
                   icon: const Icon(Icons.edit_rounded, size: 20),
                   onPressed: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => ManageUserScreen(user: user)));
@@ -271,7 +271,7 @@ class _UserCard extends StatelessWidget {
                 ),
                 if (!isCurrentUser)
                   IconButton(
-                    tooltip: "Delete user",
+                    tooltip: AppLocalizations.of(context).get('delete_user'),
                     icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
                     onPressed: () => _confirmDelete(context, userService, user),
                   ),
@@ -294,13 +294,14 @@ class _UserCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, UserService userService, UserProfile user) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete User"),
-        content: Text("Are you sure you want to delete ${user.displayName}? This action cannot be undone."),
+        title: Text(l10n.get('delete_user')),
+        content: Text("${l10n.get('delete_user_confirm').replaceAll('{name}', user.displayName)}"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.get('cancel'))),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             onPressed: () async {
@@ -308,11 +309,11 @@ class _UserCard extends StatelessWidget {
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("User ${user.displayName} deleted"))
+                  SnackBar(content: Text(l10n.get('user_deleted_msg').replaceAll('{name}', user.displayName)))
                 );
               }
             },
-            child: const Text("Delete"),
+            child: Text(l10n.get('delete')),
           ),
         ],
       ),

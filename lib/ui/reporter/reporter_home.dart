@@ -48,7 +48,7 @@ class _ReporterHomeState extends State<ReporterHome> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     
-    if (user == null) return const Center(child: Text("Not Authenticated"));
+    if (user == null) return Center(child: Text(AppLocalizations.of(context).get('auth_error')));
     if (_isLoading || _organizationId == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -66,7 +66,7 @@ class _ReporterHomeState extends State<ReporterHome> {
           children: [
             Text(
               authService.impersonatedProfile != null 
-                  ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
+                  ? "${l10n.get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 
                   : l10n.get('my_dashboard'),
               style: textTheme.titleLarge,
             ),
@@ -90,7 +90,7 @@ class _ReporterHomeState extends State<ReporterHome> {
                child: IconButton.filledTonal(
                  onPressed: () => authService.stopImpersonating(),
                  icon: const Icon(Icons.stop_screen_share_rounded, size: 20),
-                 tooltip: "Stop Impersonating",
+                 tooltip: l10n.get('stop_impersonating'),
                ),
              ),
           const ThemeToggleButton(),
@@ -112,7 +112,7 @@ class _ReporterHomeState extends State<ReporterHome> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
+              return Center(child: Text("${l10n.get('error_loading_reports')}: ${snapshot.error}"));
             }
             final reports = snapshot.data ?? [];
             

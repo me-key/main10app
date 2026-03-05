@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (user == null) {
           setState(() {
-            _errorMessage = "Invalid email or password. Please try again.";
+            _errorMessage = AppLocalizations.of(context).get('invalid_credentials');
           });
         }
       }
@@ -45,14 +46,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.message ?? "An authentication error occurred.";
+          _errorMessage = e.message ?? AppLocalizations.of(context).get('auth_error');
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = "An unexpected error occurred. Please try again.";
+          _errorMessage = AppLocalizations.of(context).get('unexpected_error');
         });
       }
     }
@@ -62,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: Stack(
@@ -113,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 24),
                           Text(
-                            "FixIt-Pro",
+                            l10n.get('sign_in_title'),
                             style: textTheme.displaySmall?.copyWith(
                               color: colorScheme.onSurface,
                               letterSpacing: -1,
@@ -123,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "Sign in to your account",
+                            l10n.get('sign_in_subtitle'),
                             style: textTheme.bodyLarge?.copyWith(
                               color: colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
@@ -180,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                               
                               Text(
-                                "Email Address",
+                                l10n.get('email_address'),
                                 style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 8),
@@ -214,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    "Password",
+                                    l10n.get('password'),
                                     style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   TextButton(
@@ -223,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       visualDensity: VisualDensity.compact,
                                       padding: EdgeInsets.zero,
                                     ),
-                                    child: const Text("Forgot password?"),
+                                    child: Text(l10n.get('forgot_password')),
                                   ),
                                 ],
                               ),
@@ -261,13 +263,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                   padding: const EdgeInsets.symmetric(vertical: 16),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                 ),
-                                child: _isLoading 
-                                  ? const SizedBox(
-                                      height: 20, 
-                                      width: 20, 
-                                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)
-                                    ) 
-                                  : const Text("Sign In", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  child: _isLoading 
+                                    ? const SizedBox(
+                                        height: 20, 
+                                        width: 20, 
+                                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white)
+                                      ) 
+                                    : Text(l10n.get('sign_in_button'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ],
                           ),
@@ -278,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       Center(
                         child: Text(
-                          "Restricted Access\nOnly authorized personnel may access this system.",
+                          l10n.get('restricted_access'),
                           textAlign: TextAlign.center,
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurface.withValues(alpha: 0.5),

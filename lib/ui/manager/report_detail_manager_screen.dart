@@ -74,15 +74,16 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
           userId: authService.currentUserId!,
           userName: currentUser?.displayName ?? 'Manager',
           action: 'assigned',
-          details: 'Assigned to ${_selectedMaintainer!.displayName}',
+          details: '${AppLocalizations.of(context).get('assigned_to_prefix')} ${_selectedMaintainer!.displayName}',
           organizationId: currentUser?.organizationId ?? widget.report.organizationId,
         );
       }
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
          Navigator.pop(context);
          ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(
-             content: Text("Successfully assigned to ${_selectedMaintainer!.displayName}"),
+             content: Text("${l10n.get('successfully_assigned')} ${_selectedMaintainer!.displayName}"),
              behavior: SnackBarBehavior.floating,
              backgroundColor: Theme.of(context).colorScheme.primary,
            )
@@ -113,15 +114,15 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
           userId: authService.currentUserId!,
           userName: currentUser?.displayName ?? 'Manager',
           action: 'archived',
-          details: 'Report archived with comments: ${_commentsController.text}',
+          details: '${AppLocalizations.of(context).get('archived_with_comments')}: ${_commentsController.text}',
           organizationId: currentUser?.organizationId ?? widget.report.organizationId,
         );
       }
       if (mounted) {
          Navigator.pop(context);
          ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-             content: Text("Report successfully archived"),
+           SnackBar(
+             content: Text(AppLocalizations.of(context).get('report_archived_success')),
              behavior: SnackBarBehavior.floating,
            )
          );
@@ -151,15 +152,15 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
           userId: authService.currentUserId!,
           userName: currentUser?.displayName ?? 'Manager',
           action: 'reassigned',
-          details: 'Report reassigned with comments: ${_commentsController.text}',
+          details: '${AppLocalizations.of(context).get('reassigned_with_comments')}: ${_commentsController.text}',
           organizationId: currentUser?.organizationId ?? widget.report.organizationId,
         );
       }
       if (mounted) {
          Navigator.pop(context);
          ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(
-             content: Text("Report reassigned for further work"),
+           SnackBar(
+             content: Text(AppLocalizations.of(context).get('report_reassigned_success')),
              behavior: SnackBarBehavior.floating,
              backgroundColor: Colors.orange,
            )
@@ -194,7 +195,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
               const SizedBox(height: 32),
               
               _buildInfoSection(context, AppLocalizations.of(context).get('problem_desc'), [
-                _buildInfoItem(context, "Title", widget.report.title),
+                _buildInfoItem(context, AppLocalizations.of(context).get('issue_title'), widget.report.title),
                 const SizedBox(height: 16),
                 _buildInfoItem(context, AppLocalizations.of(context).get('problem_desc'), widget.report.description),
                 const SizedBox(height: 16),
@@ -214,10 +215,10 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
               
               const SizedBox(height: 24),
               
-              _buildInfoSection(context, "Reporter Details", [
-                _buildInfoItem(context, "Name", widget.report.reporterName),
+              _buildInfoSection(context, AppLocalizations.of(context).get('reporter_details'), [
+                _buildInfoItem(context, AppLocalizations.of(context).get('name_label'), widget.report.reporterName),
                 const SizedBox(height: 16),
-                _buildInfoItem(context, "Contact", widget.report.reporterPhone),
+                _buildInfoItem(context, AppLocalizations.of(context).get('contact_label'), widget.report.reporterPhone),
               ]),
               
               const SizedBox(height: 48),
@@ -359,17 +360,17 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.verified_rounded, color: Colors.green),
-                SizedBox(width: 12),
-                Text("Resolution Pending", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                const Icon(Icons.verified_rounded, color: Colors.green),
+                const SizedBox(width: 12),
+                Text(l10n.get('resolution_pending_msg'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
-              "The maintainer has completed the work. Please verify the fix and archive the ticket to complete the process.",
-              style: TextStyle(color: Colors.green),
+            Text(
+              l10n.get('resolution_pending_desc'),
+              style: const TextStyle(color: Colors.green),
             ),
             const SizedBox(height: 24),
             TextField(
@@ -417,7 +418,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
           Icon(Icons.info_outline_rounded, color: colorScheme.onSurface.withValues(alpha: 0.3)),
           const SizedBox(height: 12),
           Text(
-            widget.report.status == 'archived' ? "This report is archived." : "Maintainer is currently working on this.",
+            widget.report.status == 'archived' ? l10n.get('report_archived_msg') : l10n.get('maintainer_working_msg'),
             style: textTheme.bodySmall,
           ),
         ],

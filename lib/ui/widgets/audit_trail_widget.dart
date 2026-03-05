@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/audit_log.dart';
 import '../../services/audit_service.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 
 class AuditTrailWidget extends StatelessWidget {
   final String reportId;
@@ -16,9 +17,9 @@ class AuditTrailWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "AUDIT TRAIL",
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).get('audit_trail'),
+          style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 11,
             letterSpacing: 1.2,
@@ -33,11 +34,11 @@ class AuditTrailWidget extends StatelessWidget {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Text("Error loading audit logs: ${snapshot.error}");
+              return Text("${AppLocalizations.of(context).get('loading_audit_failed')}: ${snapshot.error}");
             }
             final logs = snapshot.data ?? [];
             if (logs.isEmpty) {
-              return const Text("No audit logs available for this report.");
+              return Text(AppLocalizations.of(context).get('no_audit_logs'));
             }
 
             return ListView.separated(

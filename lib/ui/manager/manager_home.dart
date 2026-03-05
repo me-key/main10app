@@ -81,7 +81,7 @@ class _ManagerHomeState extends State<ManagerHome> {
           children: [
             Text(
               authService.impersonatedProfile != null 
-                  ? "Impersonating: ${authService.impersonatedProfile!.displayName}" 
+                  ? "${l10n.get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 
                   : l10n.get('manager_dashboard'),
               style: textTheme.titleLarge,
             ),
@@ -105,7 +105,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                child: IconButton.filledTonal(
                  onPressed: () => authService.stopImpersonating(),
                  icon: const Icon(Icons.stop_screen_share_rounded, size: 20),
-                 tooltip: "Stop Impersonating",
+                 tooltip: l10n.get('stop_impersonating'),
                ),
              ),
           IconButton.filledTonal(
@@ -210,7 +210,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                     children: [
                       Icon(Icons.error_outline_rounded, color: colorScheme.error, size: 48),
                       const SizedBox(height: 16),
-                      Text("Failed to load reports", style: textTheme.titleMedium),
+                      Text(l10n.get('failed_load_reports'), style: textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Text("${snapshot.error}", textAlign: TextAlign.center, style: textTheme.bodySmall),
                     ],
@@ -298,6 +298,7 @@ class _ManagerReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Card(
       child: InkWell(
@@ -334,7 +335,7 @@ class _ManagerReportCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Loc: ${report.location}",
+                          "${l10n.get('loc_prefix')}${report.location}",
                           style: textTheme.bodySmall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

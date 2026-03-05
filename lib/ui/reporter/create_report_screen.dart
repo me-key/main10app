@@ -155,7 +155,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           setState(() => _isLoading = false);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Error: User not identified. Please login again."))
+              SnackBar(content: Text("${AppLocalizations.of(context).get('auth_error')}: User not identified. Please login again."))
             );
           }
           return;
@@ -167,7 +167,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           setState(() => _isLoading = false);
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Error: User profile not found."))
+              SnackBar(content: Text("${AppLocalizations.of(context).get('account_issue')}: User profile not found."))
             );
           }
           return;
@@ -230,7 +230,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Error: $e"),
+              content: Text("${AppLocalizations.of(context).get('unexpected_error')}: $e"),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
               width: 400,

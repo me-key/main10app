@@ -4,6 +4,7 @@ import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
 import '../widgets/responsive_center.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageUserScreen extends StatefulWidget {
   final UserProfile? user;
@@ -66,7 +67,10 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
          
          if (mounted) Navigator.pop(context);
        } catch (e) {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+          if (mounted) {
+            final l10n = AppLocalizations.of(context);
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+          }
        } finally {
          if (mounted) setState(() => _isLoading = false);
        }
@@ -77,10 +81,11 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.user == null ? "Create New User" : "Edit User Profile"),
+        title: Text(widget.user == null ? l10n.get('create_new_user') : l10n.get('edit_user_profile')),
       ),
       body: ResponsiveCenter(
         maxWidth: 600,
@@ -92,38 +97,38 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildHeader(context, 
-                  widget.user == null ? "Add a new member" : "Update member info", 
-                  "Fill in the details below to manage access and profile information."
+                  widget.user == null ? l10n.get('add_new_member') : l10n.get('update_member_info'), 
+                  l10n.get('fill_details_member')
                 ),
                 const SizedBox(height: 32),
                 
-                _buildFieldGroup(context, "PERSONAL INFORMATION", [
-                  _buildLabel("Display Name"),
+                _buildFieldGroup(context, l10n.get('personal_info'), [
+                  _buildLabel(l10n.get('display_name')),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      hintText: "Full Name",
-                      prefixIcon: Icon(Icons.person_outline_rounded, size: 20),
+                    decoration: InputDecoration(
+                      hintText: l10n.get('full_name_hint'),
+                      prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
                     ),
-                    validator: (v) => v!.isEmpty ? "Required" : null,
+                    validator: (v) => v!.isEmpty ? l10n.get('required') : null,
                   ),
                   const SizedBox(height: 24),
-                  _buildLabel("Phone Number"),
+                  _buildLabel(l10n.get('phone_number')),
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(
-                      hintText: "Primary contact number",
-                      prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                    decoration: InputDecoration(
+                      hintText: l10n.get('primary_contact_hint'),
+                      prefixIcon: const Icon(Icons.phone_outlined, size: 20),
                     ),
                     keyboardType: TextInputType.phone,
-                    validator: (v) => v!.isEmpty ? "Required" : null,
+                    validator: (v) => v!.isEmpty ? l10n.get('required') : null,
                   ),
                 ]),
                 
                 const SizedBox(height: 40),
                 
-                _buildFieldGroup(context, "ACCOUNT CREDENTIALS", [
-                  _buildLabel("Email Address"),
+                _buildFieldGroup(context, l10n.get('account_credentials'), [
+                  _buildLabel(l10n.get('email_address')),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -131,34 +136,40 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                       prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
                       enabled: widget.user == null,
                     ),
-                    validator: (v) => v!.isEmpty ? "Required" : null,
+                    validator: (v) => v!.isEmpty ? l10n.get('required') : null,
                     style: widget.user != null ? TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.5)) : null,
                   ),
                   if (widget.user == null) ...[
                     const SizedBox(height: 24),
-                    _buildLabel("Initial Password"),
+                    _buildLabel(l10n.get('initial_password')),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
-                        hintText: "Choose a secure password",
-                        prefixIcon: Icon(Icons.lock_outline_rounded, size: 20),
+                      decoration: InputDecoration(
+                        hintText: l10n.get('choose_password_hint'),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                       ),
                       obscureText: true,
-                      validator: (v) => v!.isEmpty ? "Required" : null,
+                      validator: (v) => v!.isEmpty ? l10n.get('required') : null,
                     ),
                   ],
                 ]),
                 
                 const SizedBox(height: 40),
                 
-                _buildFieldGroup(context, "ACCESS CONTROL", [
-                  _buildLabel("System Role"),
+                _buildFieldGroup(context, l10n.get('access_control'), [
+                  _buildLabel(l10n.get('system_role')),
                   DropdownButtonFormField<String>(
                     value: _selectedRole,
                     items: ['admin', 'manager', 'maintainer', 'reporter'].map((role) {
+                      String roleLabel = role;
+                      if (role == 'admin') roleLabel = l10n.get('admins');
+                      else if (role == 'manager') roleLabel = l10n.get('managers');
+                      else if (role == 'maintainer') roleLabel = l10n.get('maintainers');
+                      else if (role == 'reporter') roleLabel = l10n.get('reporters');
+                      
                       return DropdownMenuItem(
                         value: role, 
-                        child: Text(role.toUpperCase(), style: const TextStyle(fontSize: 14)),
+                        child: Text(roleLabel.toUpperCase(), style: const TextStyle(fontSize: 14)),
                       );
                     }).toList(),
                     onChanged: (val) => setState(() => _selectedRole = val!),
@@ -174,7 +185,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                   onPressed: _isLoading ? null : _saveUser,
                   child: _isLoading 
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)) 
-                    : Text(widget.user == null ? "Create User Account" : "Save Changes"),
+                    : Text(widget.user == null ? l10n.get('create_user_account') : l10n.get('save_changes')),
                 ),
                 const SizedBox(height: 40),
               ],
