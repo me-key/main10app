@@ -210,6 +210,11 @@ class AppLocalizations {
       'no_admins_found': 'No administrators found for this organization.',
       'existing_org_info': 'You are adding an admin to an existing organization.',
       'select_org_first': 'Please select or create an organization first',
+      'reset_password_title': 'Reset Password',
+      'reset_password_msg': "Enter your email address and we'll send you a link to reset your password.",
+      'send_reset_link': 'Send Reset Link',
+      'reset_email_sent': 'Reset email sent! Please check your inbox.',
+      'invalid_email': 'Please enter a valid email address.',
     },
     'he': {
       'app_title': 'FixIt-Pro',
@@ -411,6 +416,11 @@ class AppLocalizations {
       'no_admins_found': 'לא נמצאו מנהלים לארגון זה.',
       'existing_org_info': 'אתה מוסיף מנהל לארגון קיים.',
       'select_org_first': 'אנא בחר או צור ארגון תחילה',
+      'reset_password_title': 'איפוס סיסמה',
+      'reset_password_msg': 'הזן את כתובת האימייל שלך ונשלח לך קישור לאיפוס הסיסמה.',
+      'send_reset_link': 'שלח קישור לאיפוס',
+      'reset_email_sent': 'אימייל לאיפוס נשלח! אנא בדוק את תיבת הדואר הנכנס שלך.',
+      'invalid_email': 'אנא הזן כתובת אימייל תקינה.',
     },
   };
 

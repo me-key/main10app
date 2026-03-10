@@ -59,6 +59,122 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _showForgotPasswordDialog() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
+    final emailController = TextEditingController(text: _emailController.text);
+    bool isDialogLoading = false;
+    
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(
+            l10n.get('reset_password_title'),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.get('reset_password_msg'),
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.7)),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: emailController,
+                enabled: !isDialogLoading,
+                decoration: InputDecoration(
+                  hintText: "name@example.com",
+                  prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerLowest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isDialogLoading ? null : () => Navigator.pop(context),
+              child: Text(l10n.get('cancel')),
+            ),
+            FilledButton(
+              onPressed: isDialogLoading ? null : () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty || !email.contains('@')) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(
+                       content: Text(l10n.get('invalid_email')),
+                       behavior: SnackBarBehavior.floating,
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                   );
+                   return;
+                }
+                
+                setDialogState(() => isDialogLoading = true);
+                
+                try {
+                  await _auth.sendPasswordResetEmail(email);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(l10n.get('reset_email_sent')),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    setDialogState(() => isDialogLoading = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: colorScheme.error,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  }
+                }
+              },
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                minimumSize: const Size(100, 44),
+              ),
+              child: isDialogLoading 
+                ? const SizedBox(
+                    height: 20, 
+                    width: 20, 
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)
+                  ) 
+                : Text(l10n.get('send_reset_link')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -220,7 +336,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   TextButton(
-                                    onPressed: () {},
+                                    onPressed: _showForgotPasswordDialog,
                                     style: TextButton.styleFrom(
                                       visualDensity: VisualDensity.compact,
                                       padding: EdgeInsets.zero,
