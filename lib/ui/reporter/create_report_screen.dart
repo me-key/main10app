@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+// import 'package:image_picker/image_picker.dart';
+// import 'dart:io';
+// import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../models/report.dart';
 import '../../services/auth_service.dart';
 import '../../services/report_service.dart';
-import '../../services/storage_service.dart';
+// import '../../services/storage_service.dart';
 import '../../services/location_service.dart';
 import '../../services/audit_service.dart';
 import '../../models/location.dart';
@@ -30,8 +30,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   String? _selectedLocation;
   DateTime _reportDateTime = DateTime.now();
   
-  final List<XFile> _selectedImages = [];
-  final ImagePicker _picker = ImagePicker();
+  // final List<XFile> _selectedImages = [];
+  // final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   String? _organizationId;
   bool _isLoadingOrg = true;
@@ -87,6 +87,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     }
   }
   
+  /*
   Future<void> _pickImage(ImageSource source) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
@@ -107,13 +108,17 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       }
     }
   }
+  */
 
+  /*
   void _removeImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
     });
   }
+  */
 
+  /*
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -141,6 +146,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       ),
     );
   }
+  */
 
   void _submitReport() async {
     if (_formKey.currentState!.validate()) {
@@ -174,14 +180,16 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       }
       
       final reportService = Provider.of<ReportService>(context, listen: false);
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      // final storageService = Provider.of<StorageService>(context, listen: false);
       
       List<String> imageUrls = [];
       
       try {
+        /*
         if (_selectedImages.isNotEmpty) {
           imageUrls = await storageService.uploadFiles(_selectedImages, 'reports');
         }
+        */
 
         final report = Report(
           id: '',
@@ -343,9 +351,9 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    _buildLabel(AppLocalizations.of(context).get('attachments')),
-                    _buildImageSelection(context),
+                    // const SizedBox(height: 24),
+                    // _buildLabel(AppLocalizations.of(context).get('attachments')),
+                    // _buildImageSelection(context),
                   ],
                 ),
                 
@@ -395,6 +403,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     );
   }
 
+  /*
   Widget _buildImageSelection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,6 +469,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
       ],
     );
   }
+  */
 
   Widget _buildHeader(BuildContext context, String title, String subtitle) {
     return Column(
