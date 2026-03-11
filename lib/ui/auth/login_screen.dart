@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/locale_provider.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -199,6 +201,43 @@ class _LoginScreenState extends State<LoginScreen> {
                   secondaryColor: colorScheme.secondary.withValues(alpha: 0.05),
                 ),
               ),
+            ),
+          ),
+
+          // Language toggle
+          Positioned(
+            top: 16,
+            right: 16,
+            child: Consumer<LocaleProvider>(
+              builder: (context, localeProvider, child) {
+                final isHebrew = localeProvider.locale.languageCode == 'he';
+                return Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                  ),
+                  child: IconButton(
+                    onPressed: () => localeProvider.toggleLocale(),
+                    icon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.language, size: 20, color: colorScheme.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          isHebrew ? 'EN' : 'HE',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.primary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    tooltip: isHebrew ? 'Switch to English' : 'עבור לעברית',
+                  ),
+                );
+              },
             ),
           ),
           
