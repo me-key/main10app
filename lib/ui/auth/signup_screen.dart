@@ -6,7 +6,8 @@ import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final String? orgId;
+  const SignUpScreen({super.key, this.orgId});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -39,16 +40,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final domain = email.split('@').last.toLowerCase();
 
     try {
-      final organization = await _orgService.getOrganizationByDomain(domain);
+      String? organizationId = widget.orgId;
       
-      if (organization == null) {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = AppLocalizations.of(context).get('no_organization_for_domain');
-          });
+      if (organizationId == null) {
+        final organization = await _orgService.getOrganizationByDomain(domain);
+        
+        if (organization == null) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _errorMessage = AppLocalizations.of(context).get('no_organization_for_domain');
+            });
+          }
+          return;
         }
-        return;
+        organizationId = organization.id;
       }
 
       await _auth.signUpReporter(
@@ -56,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
-        organizationId: organization.id,
+        organizationId: organizationId,
       );
 
       if (mounted) {

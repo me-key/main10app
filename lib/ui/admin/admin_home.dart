@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
+import '../../utils/encryption_utils.dart';
 import '../widgets/theme_toggle_button.dart';
 import 'manage_user_screen.dart';
 import '../widgets/responsive_center.dart';
@@ -98,6 +100,14 @@ class _AdminHomeState extends State<AdminHome> {
           const SizedBox(width: 8),
           const ThemeToggleButton(),
           const SizedBox(width: 8),
+          /* 
+          IconButton.filledTonal(
+            onPressed: () => _showInviteDialog(context),
+            icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+            tooltip: l10n.get('generate_invite_link') ?? 'Generate Invite Link',
+          ),
+          const SizedBox(width: 8),
+          */
           IconButton.filledTonal(
             onPressed: () => Navigator.pushNamed(context, '/admin-approvals'),
             icon: const Icon(Icons.how_to_reg_rounded, size: 20),
@@ -200,6 +210,74 @@ class _AdminHomeState extends State<AdminHome> {
             color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
           ),
         ),
+      ),
+    );
+  }
+
+  void _showInviteDialog(BuildContext context) {
+    if (_organizationId == null) return;
+    
+    final l10n = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final encryptedOrgId = EncryptionUtils.encrypt(_organizationId!);
+    final inviteLink = "https://fixitpro.app/signup?orgId=$encryptedOrgId";
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.get('invite_link_section') ?? 'Invite New Members'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.get('invite_link_desc') ?? 'Share this link to allow others to join your organization.',
+              style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 13),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      inviteLink,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: inviteLink));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.get('invite_link_copied') ?? 'Copied!')),
+                      );
+                    },
+                    icon: const Icon(Icons.copy_rounded, size: 20),
+                    tooltip: l10n.get('copy_link') ?? 'Copy Link',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.get('close') ?? 'Close'),
+          ),
+        ],
       ),
     );
   }

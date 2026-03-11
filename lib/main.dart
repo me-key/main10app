@@ -17,6 +17,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ui/auth/signup_screen.dart';
 import 'ui/auth/approval_pending_screen.dart';
 import 'ui/admin/admin_approval_screen.dart';
+import 'utils/encryption_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,8 +74,31 @@ class FixItProApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           home: const RoleWrapper(),
+          onGenerateRoute: (settings) {
+            final uri = Uri.parse(settings.name ?? '');
+            
+            if (uri.path == '/signup') {
+              final encryptedOrgId = uri.queryParameters['orgId'];
+              final orgId = encryptedOrgId != null ? EncryptionUtils.decrypt(encryptedOrgId) : null;
+              return MaterialPageRoute(
+                builder: (context) => SignUpScreen(orgId: orgId),
+              );
+            }
+            
+            // Default routes
+            switch (uri.path) {
+              case '/login':
+                return MaterialPageRoute(builder: (context) => const RoleWrapper());
+              case '/approval-pending':
+                return MaterialPageRoute(builder: (context) => const ApprovalPendingScreen());
+              case '/admin-approvals':
+                return MaterialPageRoute(builder: (context) => const AdminApprovalScreen());
+              default:
+                return null;
+            }
+          },
           routes: {
-            '/login': (context) => const RoleWrapper(), // RoleWrapper handles login state
+            '/login': (context) => const RoleWrapper(),
             '/signup': (context) => const SignUpScreen(),
             '/approval-pending': (context) => const ApprovalPendingScreen(),
             '/admin-approvals': (context) => const AdminApprovalScreen(),

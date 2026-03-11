@@ -239,6 +239,11 @@ class AppLocalizations {
       'no_organization_for_domain': 'No organization found for this email domain. Please contact your administrator.',
       'email_domain_label': 'Email Domain',
       'email_domain_hint': 'e.g., test.com',
+      'invite_link_section': 'Invite New Members',
+      'invite_link_desc': 'Share this unique link to allow others to join your organization as reporters.',
+      'generate_invite_link': 'Generate Invite Link',
+      'copy_link': 'Copy Invite Link',
+      'invite_link_copied': 'Invite link copied to clipboard',
     },
     'he': {
       'app_title': 'FixIt-Pro',
@@ -469,6 +474,11 @@ class AppLocalizations {
       'no_organization_for_domain': 'לא נמצא ארגון עבור דומיין האימייל הזה. אנא פנה למנהל המערכת.',
       'email_domain_label': 'דומיין אימייל',
       'email_domain_hint': 'לדוגמה test.com',
+      'invite_link_section': 'הזמנת חברים חדשים',
+      'invite_link_desc': 'שתף את הקישור הייחודי הזה כדי לאפשר לאחרים להצטרף לארגון שלך בתור מדווחים.',
+      'generate_invite_link': 'צור קישור הזמנה',
+      'copy_link': 'העתק קישור הזמנה',
+      'invite_link_copied': 'קישור ההזמנה הועתק ללוח',
     },
   };
 
