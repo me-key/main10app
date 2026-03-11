@@ -8,6 +8,7 @@ import 'manage_user_screen.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
+import '../profile_screen.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -45,6 +46,7 @@ class _AdminHomeState extends State<AdminHome> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final authService = Provider.of<AuthService>(context, listen: false);
     final userService = Provider.of<UserService>(context, listen: false);
 
@@ -88,7 +90,19 @@ class _AdminHomeState extends State<AdminHome> {
                  tooltip: AppLocalizations.of(context).get('stop_impersonating'),
                ),
              ),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            icon: const Icon(Icons.account_circle_rounded, size: 20),
+            tooltip: AppLocalizations.of(context).get('my_profile'),
+          ),
+          const SizedBox(width: 8),
           const ThemeToggleButton(),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.pushNamed(context, '/admin-approvals'),
+            icon: const Icon(Icons.how_to_reg_rounded, size: 20),
+            tooltip: l10n.get('user_approvals') ?? 'User Approvals',
+          ),
           const SizedBox(width: 8),
           IconButton.filledTonal(
             onPressed: () => authService.signOut(), 

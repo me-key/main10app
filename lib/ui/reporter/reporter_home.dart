@@ -9,6 +9,7 @@ import '../widgets/theme_toggle_button.dart';
 import 'create_report_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
+import '../profile_screen.dart';
 
 class ReporterHome extends StatefulWidget {
   const ReporterHome({super.key});
@@ -93,6 +94,12 @@ class _ReporterHomeState extends State<ReporterHome> {
                  tooltip: l10n.get('stop_impersonating'),
                ),
              ),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            icon: const Icon(Icons.account_circle_rounded, size: 20),
+            tooltip: l10n.get('my_profile'),
+          ),
+          const SizedBox(width: 8),
           const ThemeToggleButton(),
           const SizedBox(width: 8),
           IconButton.filledTonal(

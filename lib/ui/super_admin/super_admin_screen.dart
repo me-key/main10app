@@ -25,6 +25,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
   // Organization fields
   final _orgNameController = TextEditingController();
   final _orgDescController = TextEditingController();
+  final _orgDomainController = TextEditingController();
   
   // Admin fields
   final _adminNameController = TextEditingController();
@@ -43,6 +44,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
   void dispose() {
     _orgNameController.dispose();
     _orgDescController.dispose();
+    _orgDomainController.dispose();
     _adminNameController.dispose();
     _adminEmailController.dispose();
     _adminPhoneController.dispose();
@@ -68,6 +70,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
       final orgId = await setup.createOrganization(
         name: _orgNameController.text.trim(),
         description: _orgDescController.text.trim(),
+        emailDomain: _orgDomainController.text.trim().toLowerCase(),
       );
 
       if (mounted) {
@@ -146,6 +149,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
       _errorMessage = null;
       _orgNameController.clear();
       _orgDescController.clear();
+      _orgDomainController.clear();
       _adminNameController.clear();
       _adminEmailController.clear();
       _adminPhoneController.clear();
@@ -295,6 +299,17 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
               border: const OutlineInputBorder(),
             ),
             maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _orgDomainController,
+            enabled: _createdOrgId == null && _selectedOrgId == null,
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).get('email_domain_label'),
+              hintText: AppLocalizations.of(context).get('email_domain_hint'),
+              prefixIcon: const Icon(Icons.alternate_email),
+              border: const OutlineInputBorder(),
+            ),
           ),
           const SizedBox(height: 16),
           if (_selectedOrgId == null)

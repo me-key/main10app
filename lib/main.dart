@@ -14,6 +14,9 @@ import 'providers/locale_provider.dart';
 import 'ui/role_wrapper.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'ui/auth/signup_screen.dart';
+import 'ui/auth/approval_pending_screen.dart';
+import 'ui/admin/admin_approval_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +73,12 @@ class FixItProApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           home: const RoleWrapper(),
+          routes: {
+            '/login': (context) => const RoleWrapper(), // RoleWrapper handles login state
+            '/signup': (context) => const SignUpScreen(),
+            '/approval-pending': (context) => const ApprovalPendingScreen(),
+            '/admin-approvals': (context) => const AdminApprovalScreen(),
+          },
         );
       },
     );

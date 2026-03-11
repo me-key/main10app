@@ -35,6 +35,19 @@ class OrganizationService {
     return Organization.fromSnapshot(doc);
   }
 
+  // Get organization by email domain
+  Future<Organization?> getOrganizationByDomain(String domain) async {
+    if (_firestore == null) return null;
+    final snapshot = await _firestore!
+        .collection(_collection)
+        .where('emailDomain', isEqualTo: domain)
+        .limit(1)
+        .get();
+    
+    if (snapshot.docs.isEmpty) return null;
+    return Organization.fromSnapshot(snapshot.docs.first);
+  }
+
   // Create new organization
   Future<String> createOrganization(Organization org) async {
     if (_firestore == null) throw Exception("Backend not available");

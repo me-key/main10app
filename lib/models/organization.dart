@@ -6,6 +6,7 @@ class Organization {
   final String? description;
   final DateTime createdAt;
   final bool isActive;
+  final String? emailDomain;
 
   Organization({
     required this.id,
@@ -13,6 +14,7 @@ class Organization {
     this.description,
     required this.createdAt,
     this.isActive = true,
+    this.emailDomain,
   });
 
   factory Organization.fromSnapshot(DocumentSnapshot doc) {
@@ -23,6 +25,7 @@ class Organization {
       description: data['description'],
       createdAt: (data['createdAt'] as Timestamp? ?? Timestamp.now()).toDate(),
       isActive: data['isActive'] ?? true,
+      emailDomain: data['emailDomain'],
     );
   }
 
@@ -32,6 +35,7 @@ class Organization {
       'description': description,
       'createdAt': Timestamp.fromDate(createdAt),
       'isActive': isActive,
+      'emailDomain': emailDomain,
     };
   }
 
@@ -40,6 +44,7 @@ class Organization {
     String? description,
     DateTime? createdAt,
     bool? isActive,
+    String? emailDomain,
   }) {
     return Organization(
       id: id,
@@ -47,6 +52,7 @@ class Organization {
       description: description ?? this.description,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
+      emailDomain: emailDomain ?? this.emailDomain,
     );
   }
 }

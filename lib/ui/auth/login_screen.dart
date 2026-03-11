@@ -46,7 +46,12 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.message ?? AppLocalizations.of(context).get('auth_error');
+          _errorMessage = e.code == 'not-approved' 
+            ? e.message 
+            : e.message ?? AppLocalizations.of(context).get('auth_error');
+          if (e.code == 'not-approved') {
+            Navigator.of(context).pushNamed('/approval-pending');
+          }
         });
       }
     } catch (e) {
@@ -392,16 +397,25 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
                       
-                      Center(
-                        child: Text(
-                          l10n.get('restricted_access'),
-                          textAlign: TextAlign.center,
-                          style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l10n.get('no_account') ?? "Don't have an account?",
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pushNamed('/signup'),
+                            child: Text(
+                              l10n.get('sign_up_link') ?? "Sign Up",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                       ),
                       
                       const SizedBox(height: 24),

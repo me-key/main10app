@@ -17,8 +17,8 @@ service cloud.firestore {
 
     // Organizations collection
     match /organizations/{orgId} {
-      // Users can read their own organization, Super Admin can read all
-      allow read: if request.auth != null && (getUserOrg() == orgId || hasRole('super_admin'));
+      // Users can read any organization to support domain-based signup
+      allow read: if true;
       
       // Only Super Admin can create organizations
       allow create: if hasRole('super_admin');
@@ -36,17 +36,26 @@ service cloud.firestore {
       
       // Super Admin can create any user
       // OR Admins can create users in their organization
+      // OR Authenticated users can create their own 'reporter' profile (waiting for approval)
       allow create: if request.auth != null && (
+        (request.auth.uid == userId && 
+         request.resource.data.role == 'reporter' && 
+         request.resource.data.isApproved == false) ||
         hasRole('super_admin') ||
         (hasRole('admin') && request.resource.data.organizationId == getUserOrg())
       );
       
       // Admins/Super Admins can update users
-      allow update: if hasRole('super_admin') || (
-                    hasRole('admin') 
-                    && resource.data.organizationId == getUserOrg()
-                    && request.resource.data.organizationId == resource.data.organizationId
-      );
+      // OR Users can update their own profile (limited fields)
+      allow update: if hasRole('super_admin') || 
+                    (hasRole('admin') 
+                     && resource.data.organizationId == getUserOrg()
+                     && request.resource.data.organizationId == resource.data.organizationId
+                    ) ||
+                    (request.auth.uid == userId 
+                     && request.resource.data.role == resource.data.role
+                     && request.resource.data.organizationId == resource.data.organizationId
+                    );
       
       // Admins/Super Admins can delete users
       allow delete: if hasRole('super_admin') || (hasRole('admin') && resource.data.organizationId == getUserOrg());

@@ -9,6 +9,7 @@ import 'task_detail_screen.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
+import '../profile_screen.dart';
 
 class MaintainerHome extends StatefulWidget {
   const MaintainerHome({super.key});
@@ -94,6 +95,12 @@ class _MaintainerHomeState extends State<MaintainerHome> {
                  tooltip: l10n.get('stop_impersonating'),
                ),
              ),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            icon: const Icon(Icons.account_circle_rounded, size: 20),
+            tooltip: l10n.get('my_profile'),
+          ),
+          const SizedBox(width: 8),
           const ThemeToggleButton(),
           const SizedBox(width: 8),
           IconButton.filledTonal(

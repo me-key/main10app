@@ -14,6 +14,7 @@ import '../../models/user_profile.dart';
 import 'maintainer_tasks_screen.dart';
 import 'reporter_tasks_screen.dart';
 import 'location_tasks_screen.dart';
+import '../profile_screen.dart';
 
 class ManagerHome extends StatefulWidget {
   const ManagerHome({super.key});
@@ -165,6 +166,12 @@ class _ManagerHomeState extends State<ManagerHome> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            icon: const Icon(Icons.account_circle_rounded, size: 20),
+            tooltip: l10n.get('my_profile'),
           ),
           const SizedBox(width: 8),
           const ThemeToggleButton(),

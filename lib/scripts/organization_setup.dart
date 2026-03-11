@@ -17,14 +17,16 @@ class OrganizationSetup {
   Future<String> createOrganization({
     required String name,
     required String description,
+    String? emailDomain,
   }) async {
     try {
-      print("📦 Registering organization: $name");
+      print("📦 Registering organization: $name (Domain: $emailDomain)");
       final orgRef = FirebaseFirestore.instance.collection('organizations').doc();
       
       await orgRef.set({
         'name': name,
         'description': description,
+        'emailDomain': emailDomain,
         'createdAt': FieldValue.serverTimestamp(),
         'isActive': true,
       });

@@ -114,7 +114,7 @@ class AuthService {
         password: password,
       );
       
-      // Check if user profile exists in Firestore
+      // Check if user profile exists in Firestore and is approved
       final user = result.user;
       if (user != null) {
          final profile = await getUserProfile(user.uid);
@@ -124,6 +124,15 @@ class AuthService {
            throw FirebaseAuthException(
              code: 'user-deleted',
              message: 'This user account has been deleted.',
+           );
+         }
+         
+         if (!profile.isApproved) {
+           print("AuthService: User authenticated but not approved. Signing out.");
+           await _auth!.signOut();
+           throw FirebaseAuthException(
+             code: 'not-approved',
+             message: 'Your account is pending approval by an administrator.',
            );
          }
       }
@@ -176,7 +185,7 @@ class AuthService {
   }
 
   // Sign up a new user and sign them in (Main App Instance)
-  // Used for Organization Setup / Self-Signup
+  // Used for Organization Setup
   Future<User?> signUp(String email, String password) async {
     try {
       if (_auth == null) return null;
@@ -191,12 +200,79 @@ class AuthService {
     }
   }
 
+  // Self sign-up for reporters
+  Future<User?> signUpReporter({
+    required String email,
+    required String password,
+    required String name,
+    required String phoneNumber,
+    required String organizationId,
+  }) async {
+    if (_auth == null || _firestore == null) return null;
+    try {
+      UserCredential result = await _auth!.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      User? user = result.user;
+      
+      if (user != null) {
+        await _firestore!.collection('users').doc(user.uid).set({
+          'email': email,
+          'displayName': name,
+          'role': 'reporter',
+          'phoneNumber': phoneNumber,
+          'organizationId': organizationId,
+          'isApproved': false,
+        });
+      }
+      
+      // Sign out immediately because they are not approved yet
+      await _auth!.signOut();
+      return user;
+    } catch (e) {
+      print("AuthService: Error signing up reporter: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> approveUser(String uid) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore!.collection('users').doc(uid).update({
+        'isApproved': true,
+      });
+    } catch (e) {
+      print("AuthService: Error approving user: $e");
+      rethrow;
+    }
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     if (_auth == null) return;
     try {
       await _auth!.sendPasswordResetEmail(email: email);
     } catch (e) {
       print("AuthService: Error sending password reset email: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> updateUserProfile({
+    required String uid,
+    required String displayName,
+    required String phoneNumber,
+  }) async {
+    if (_firestore == null) return;
+    try {
+      print("AuthService: Updating profile for $uid...");
+      await _firestore!.collection('users').doc(uid).update({
+        'displayName': displayName,
+        'phoneNumber': phoneNumber,
+      });
+      print("AuthService: Profile updated successfully.");
+    } catch (e) {
+      print("AuthService: Error updating profile: $e");
       rethrow;
     }
   }
