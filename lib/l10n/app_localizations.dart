@@ -11,7 +11,7 @@ class AppLocalizations {
 
   static const _localizedValues = {
     'en': {
-      'app_title': 'FixIt-Pro',
+      'app_title': 'Maintens',
       'my_tasks': 'My Tasks',
       'assigned_work': 'Your assigned maintenance work',
       'all_tasks': 'All Tasks',
@@ -177,7 +177,7 @@ class AppLocalizations {
       'assigned_to_prefix': 'Assigned to',
       'archived_with_comments': 'Report archived with comments',
       'reassigned_with_comments': 'Report reassigned with comments',
-      'sign_in_title': 'FixIt-Pro',
+      'sign_in_title': 'Maintens',
       'sign_in_subtitle': 'Sign in to your account',
       'invalid_credentials': 'Invalid email or password. Please try again.',
       'auth_error': 'An authentication error occurred.',
@@ -246,7 +246,7 @@ class AppLocalizations {
       'invite_link_copied': 'Invite link copied to clipboard',
     },
     'he': {
-      'app_title': 'FixIt-Pro',
+      'app_title': 'Maintens',
       'my_tasks': 'המשימות שלי',
       'assigned_work': 'עבודות התחזוקה שהוקצו לך',
       'all_tasks': 'כל המשימות',
@@ -412,7 +412,7 @@ class AppLocalizations {
       'assigned_to_prefix': 'הוקצה ל-',
       'archived_with_comments': 'הדיווח נגנז עם הערות',
       'reassigned_with_comments': 'הדיווח הוקצה מחדש עם הערות',
-      'sign_in_title': 'FixIt-Pro',
+      'sign_in_title': 'Maintens',
       'sign_in_subtitle': 'התחבר לחשבונך',
       'invalid_credentials': 'אימייל או סיסמה שגויים. אנא נסה שוב.',
       'auth_error': 'אירעה שגיאה באימות.',

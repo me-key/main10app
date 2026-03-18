@@ -62,9 +62,13 @@ class _ReporterHomeState extends State<ReporterHome> {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 100,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset('assets/images/main10applogo.png', height: 32, fit: BoxFit.contain),
+            const SizedBox(height: 4),
             Text(
               authService.impersonatedProfile != null 
                   ? "${l10n.get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 

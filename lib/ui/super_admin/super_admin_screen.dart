@@ -163,7 +163,16 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context).get('super_admin_console')),
+        toolbarHeight: 90,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/images/main10applogo.png', height: 32, fit: BoxFit.contain),
+            const SizedBox(height: 4),
+            Text(AppLocalizations.of(context).get('super_admin_console')),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

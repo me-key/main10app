@@ -1,7 +1,7 @@
-# System Architecture - FixIt-Pro
+# System Architecture - Maintens
 
 ## Overview
-FixIt-Pro is a maintenance reporting application built with Flutter and Firebase. It supports multi-role access control for Reporters, Maintainers, Managers, and Admins.
+Maintens is a maintenance reporting application built with Flutter and Firebase. It supports multi-role access control for Reporters, Maintainers, Managers, and Admins.
 
 ## Technology Stack
 - **Frontend**: Flutter (Material 3)

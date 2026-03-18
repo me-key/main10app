@@ -3,7 +3,7 @@ import 'dart:convert';
 /// A very basic XOR + Base64 'encryption' for obfuscating IDs in URLs.
 /// Not suitable for sensitive data, but sufficient for hiding raw Firestore IDs.
 class EncryptionUtils {
-  static const String _key = "fixit-pro-secret-key";
+  static const String _key = "maintens-secret-key";
 
   static String encrypt(String plainText) {
     List<int> bytes = utf8.encode(plainText);

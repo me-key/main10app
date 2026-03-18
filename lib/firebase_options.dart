@@ -70,6 +70,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '758403612814',
     projectId: 'main10app-1c326',
     storageBucket: 'main10app-1c326.firebasestorage.app',
-    iosBundleId: 'com.example.main10app',
+    iosBundleId: 'com.mickey.main10app',
   );
 }

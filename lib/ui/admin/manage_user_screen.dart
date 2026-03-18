@@ -133,7 +133,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      hintText: "identity@fixitpro.com",
+                      hintText: "identity@maintens.com",
                       prefixIcon: const Icon(Icons.mail_outline_rounded, size: 20),
                       enabled: widget.user == null,
                     ),

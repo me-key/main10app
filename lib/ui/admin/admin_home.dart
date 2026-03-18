@@ -60,9 +60,13 @@ class _AdminHomeState extends State<AdminHome> {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 100,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset('assets/images/main10applogo.png', height: 32, fit: BoxFit.contain),
+            const SizedBox(height: 4),
             Text(
               authService.impersonatedProfile != null 
                   ? "${AppLocalizations.of(context).get('impersonating_msg')}: ${authService.impersonatedProfile!.displayName}" 
@@ -220,7 +224,7 @@ class _AdminHomeState extends State<AdminHome> {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final encryptedOrgId = EncryptionUtils.encrypt(_organizationId!);
-    final inviteLink = "https://fixitpro.app/signup?orgId=$encryptedOrgId";
+    final inviteLink = "https://maintens.app/signup?orgId=$encryptedOrgId";
 
     showDialog(
       context: context,

@@ -256,33 +256,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(24),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colorScheme.shadow.withValues(alpha: 0.1),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.asset(
+                                'assets/images/main10applogo.png',
+                                height: 200, // Increased size
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                            child: Icon(
-                              Icons.handyman_rounded,
-                              size: 48,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            l10n.get('sign_in_title'),
-                            style: textTheme.displaySmall?.copyWith(
-                              color: colorScheme.onSurface,
-                              letterSpacing: -1,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          ),                        
                           const SizedBox(height: 8),
                           Text(
                             l10n.get('sign_in_subtitle'),

@@ -45,13 +45,13 @@ void main() async {
         Provider<LocationService>(create: (_) => LocationService()),
         Provider<AuditService>(create: (_) => AuditService()),
       ],
-      child: const FixItProApp(),
+      child: const MaintensApp(),
     ),
   );
 }
 
-class FixItProApp extends StatelessWidget {
-  const FixItProApp({super.key});
+class MaintensApp extends StatelessWidget {
+  const MaintensApp({super.key});
 
   @override
   Widget build(BuildContext context) {
