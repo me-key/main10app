@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/organization.dart';
+import 'trial_service.dart';
 
 class OrganizationService {
   final FirebaseFirestore? _firestore;
@@ -48,20 +49,47 @@ class OrganizationService {
     return Organization.fromSnapshot(snapshot.docs.first);
   }
 
-  // Create new organization
+  // Create new organization — automatically sets trialEndsAt from global config
   Future<String> createOrganization(Organization org) async {
     if (_firestore == null) throw Exception("Backend not available");
-    
-    final docRef = await _firestore!.collection(_collection).add(
-      org.toMap()..addAll({'createdAt': FieldValue.serverTimestamp()}),
-    );
-    
+
+    // Fetch trial config to determine the trial end date
+    final trialService = TrialService();
+    final trialConfig = await trialService.getTrialConfig();
+    final trialDays = org.trialDurationDays ?? (trialConfig['defaultTrialDays'] as int? ?? 7);
+    final trialEndsAt = DateTime.now().add(Duration(days: trialDays));
+
+    final orgMap = org.toMap()
+      ..addAll({
+        'createdAt': FieldValue.serverTimestamp(),
+        'trialEndsAt': Timestamp.fromDate(trialEndsAt),
+        'trialDurationDays': trialDays,
+      });
+
+    final docRef = await _firestore!.collection(_collection).add(orgMap);
     return docRef.id;
   }
 
   // Update organization
   Future<void> updateOrganization(String id, Map<String, dynamic> data) async {
     if (_firestore == null) throw Exception("Backend not available");
+    await _firestore!.collection(_collection).doc(id).update(data);
+  }
+
+  // Update trial settings for a specific org (super admin)
+  Future<void> updateOrgTrial(String id, {
+    DateTime? trialEndsAt,
+    int? trialDurationDays,
+  }) async {
+    if (_firestore == null) throw Exception("Backend not available");
+    final data = <String, dynamic>{};
+    if (trialEndsAt != null) {
+      data['trialEndsAt'] = Timestamp.fromDate(trialEndsAt);
+    }
+    if (trialDurationDays != null) {
+      data['trialDurationDays'] = trialDurationDays;
+    }
+    if (data.isEmpty) return;
     await _firestore!.collection(_collection).doc(id).update(data);
   }
 

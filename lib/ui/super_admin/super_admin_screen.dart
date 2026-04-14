@@ -9,6 +9,8 @@ import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/trial_service.dart';
+import 'package:intl/intl.dart';
 
 class SuperAdminScreen extends StatefulWidget {
   const SuperAdminScreen({super.key});
@@ -33,12 +35,107 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
   final _adminPhoneController = TextEditingController();
   final _adminPasswordController = TextEditingController();
   
+  // Trial fields (Global)
+  final _trialService = TrialService();
+  final _defaultTrialDaysController = TextEditingController();
+  final _contactEmailController = TextEditingController();
+  bool _isSavingConfig = false;
+
+  // Trial fields (Selected Org)
+  final _orgTrialEndsAtController = TextEditingController();
+  final _orgTrialDurationController = TextEditingController();
+  bool _isUpdatingOrgTrial = false;
+
   bool _isLoadingOrg = false;
   bool _isLoadingAdmin = false;
   String? _selectedOrgId;
   String? _createdOrgId;
   bool _isAdminCreated = false;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGlobalTrialConfig();
+  }
+
+  Future<void> _loadGlobalTrialConfig() async {
+    final config = await _trialService.getTrialConfig();
+    setState(() {
+      _defaultTrialDaysController.text = config['defaultTrialDays'].toString();
+      _contactEmailController.text = config['contactEmail'];
+    });
+  }
+
+  Future<void> _saveGlobalTrialConfig() async {
+    setState(() => _isSavingConfig = true);
+    try {
+      await _trialService.setTrialConfig(
+        defaultTrialDays: int.tryParse(_defaultTrialDaysController.text),
+        contactEmail: _contactEmailController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).get('config_saved')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingConfig = false);
+    }
+  }
+
+  void _loadOrgTrialData(Organization org) {
+    _orgTrialDurationController.text = (org.trialDurationDays ?? 7).toString();
+    if (org.trialEndsAt != null) {
+      _orgTrialEndsAtController.text = DateFormat('yyyy-MM-dd').format(org.trialEndsAt!);
+    } else {
+      _orgTrialEndsAtController.text = '';
+    }
+  }
+
+  Future<void> _updateOrgTrial() async {
+    if (_selectedOrgId == null) return;
+    setState(() => _isUpdatingOrgTrial = true);
+    try {
+      final endsAtText = _orgTrialEndsAtController.text.trim();
+      DateTime? endsAt;
+      if (endsAtText.isNotEmpty) {
+        endsAt = DateFormat('yyyy-MM-dd').parse(endsAtText);
+      }
+      
+      await _orgService.updateOrgTrial(
+        _selectedOrgId!,
+        trialEndsAt: endsAt,
+        trialDurationDays: int.tryParse(_orgTrialDurationController.text),
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).get('trial_updated')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUpdatingOrgTrial = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -49,6 +146,10 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
     _adminEmailController.dispose();
     _adminPhoneController.dispose();
     _adminPasswordController.dispose();
+    _defaultTrialDaysController.dispose();
+    _contactEmailController.dispose();
+    _orgTrialEndsAtController.dispose();
+    _orgTrialDurationController.dispose();
     super.dispose();
   }
 
@@ -250,7 +351,14 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
                   return ListTile(
                     selected: isSelected,
                     title: Text(org.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text("ID: ${org.id}", style: const TextStyle(fontSize: 10)),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("ID: ${org.id}", style: const TextStyle(fontSize: 10)),
+                        const SizedBox(height: 4),
+                        _buildTrialChip(org),
+                      ],
+                    ),
                     selectedTileColor: Theme.of(context).primaryColor.withOpacity(0.1),
                     onTap: () {
                       setState(() {
@@ -258,6 +366,7 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
                         _errorMessage = null;
                         _isAdminCreated = false; // Reset if switching
                         _createdOrgId = null; // We are picking existing one
+                        _loadOrgTrialData(org);
                       });
                     },
                     trailing: IconButton(
@@ -287,6 +396,8 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          _buildGlobalTrialConfigSection(),
+          const SizedBox(height: 48),
           _buildSectionHeader(AppLocalizations.of(context).get('phase_1_org_creation')),
           const SizedBox(height: 16),
           TextFormField(
@@ -349,6 +460,11 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
               ),
             ),
           
+          if (effectiveOrgId != null) ...[
+            const SizedBox(height: 32),
+            _buildOrgTrialManagementSection(),
+          ],
+
           const SizedBox(height: 32),
           _buildSectionHeader(AppLocalizations.of(context).get('phase_2_admin_assignment')),
           if (effectiveOrgId != null)
@@ -496,6 +612,159 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
           ),
         ),
         const Divider(),
+      ],
+    );
+  }
+
+  Widget _buildTrialChip(Organization org) {
+    final l10n = AppLocalizations.of(context);
+    String label;
+    Color color;
+
+    if (org.trialEndsAt == null) {
+      label = l10n.get('trial_status_no_trial');
+      color = Colors.grey;
+    } else if (org.isTrialExpired) {
+      label = l10n.get('trial_status_expired');
+      color = Colors.red;
+    } else {
+      final days = org.trialDaysRemaining;
+      label = "${l10n.get('trial_prefix')}$days${l10n.get('days_left')}";
+      color = days <= 2 ? Colors.orange : Colors.green;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildGlobalTrialConfigSection() {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionHeader(l10n.get('trial_config_title')),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _defaultTrialDaysController,
+                decoration: InputDecoration(
+                  labelText: l10n.get('default_trial_days'),
+                  prefixIcon: const Icon(Icons.timer),
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: TextFormField(
+                controller: _contactEmailController,
+                decoration: InputDecoration(
+                  labelText: l10n.get('contact_email'),
+                  prefixIcon: const Icon(Icons.contact_mail),
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              height: 56,
+              child: FilledButton.icon(
+                onPressed: _isSavingConfig ? null : _saveGlobalTrialConfig,
+                icon: _isSavingConfig
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.save),
+                label: Text(l10n.get('save_config')),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOrgTrialManagementSection() {
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildSectionHeader(l10n.get('manage_trial')),
+        const SizedBox(height: 16),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _orgTrialEndsAtController,
+                decoration: InputDecoration(
+                  labelText: l10n.get('trial_ends_at'),
+                  hintText: 'YYYY-MM-DD',
+                  prefixIcon: const Icon(Icons.calendar_today),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.date_range),
+                    onPressed: () async {
+                      final current = _orgTrialEndsAtController.text.isNotEmpty
+                          ? DateFormat('yyyy-MM-dd').parse(_orgTrialEndsAtController.text)
+                          : DateTime.now();
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: current,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          _orgTrialEndsAtController.text = DateFormat('yyyy-MM-dd').format(picked);
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: TextFormField(
+                controller: _orgTrialDurationController,
+                decoration: InputDecoration(
+                  labelText: l10n.get('default_trial_days'),
+                  prefixIcon: const Icon(Icons.timer_outlined),
+                  border: const OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+            ),
+            const SizedBox(width: 16),
+            SizedBox(
+              height: 56,
+              child: FilledButton.icon(
+                onPressed: _isUpdatingOrgTrial ? null : _updateOrgTrial,
+                icon: _isUpdatingOrgTrial
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.update),
+                label: Text(l10n.get('update_trial')),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

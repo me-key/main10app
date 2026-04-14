@@ -16,6 +16,7 @@ import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ui/auth/signup_screen.dart';
 import 'ui/auth/approval_pending_screen.dart';
+import 'ui/auth/trial_expired_screen.dart';
 import 'ui/admin/admin_approval_screen.dart';
 import 'utils/encryption_utils.dart';
 
@@ -91,6 +92,12 @@ class MaintensApp extends StatelessWidget {
                 return MaterialPageRoute(builder: (context) => const RoleWrapper());
               case '/approval-pending':
                 return MaterialPageRoute(builder: (context) => const ApprovalPendingScreen());
+              case '/trial-expired':
+                return MaterialPageRoute(
+                  builder: (context) => TrialExpiredScreen(
+                    contactEmail: settings.arguments as String?,
+                  ),
+                );
               case '/admin-approvals':
                 return MaterialPageRoute(builder: (context) => const AdminApprovalScreen());
               default:
@@ -101,6 +108,9 @@ class MaintensApp extends StatelessWidget {
             '/login': (context) => const RoleWrapper(),
             '/signup': (context) => const SignUpScreen(),
             '/approval-pending': (context) => const ApprovalPendingScreen(),
+            '/trial-expired': (context) => TrialExpiredScreen(
+              contactEmail: ModalRoute.of(context)?.settings.arguments as String?,
+            ),
             '/admin-approvals': (context) => const AdminApprovalScreen(),
           },
         );

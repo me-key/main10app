@@ -11,6 +11,8 @@ import 'package:main10app/models/location.dart';
 import 'package:main10app/services/location_service.dart';
 import 'package:main10app/services/audit_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:main10app/l10n/app_localizations.dart';
 import 'dart:io';
 
 // Manual Mocks
@@ -36,6 +38,7 @@ class MockAuditService extends AuditService {
     required String userName,
     required String action,
     required String details,
+    required String organizationId,
   }) async {
     logActionCalled = true;
   }
@@ -53,6 +56,7 @@ class MockAuthService extends AuthService {
       email: 'test@example.com',
       role: 'reporter',
       phoneNumber: '123456789',
+      organizationId: 'test_org_id',
     );
   }
 }
@@ -68,9 +72,9 @@ class MockLocationService extends LocationService {
   MockLocationService() : super(firestore: null);
 
   @override
-  Stream<List<Location>> getLocations() {
+  Stream<List<Location>> getLocations(String organizationId) {
     return Stream.value([
-      Location(id: '1', name: 'Test Location', createdAt: DateTime.now()),
+      Location(id: '1', name: 'Test Location', createdAt: DateTime.now(), organizationId: 'test_org_id'),
     ]);
   }
 }
@@ -92,6 +96,17 @@ void main() {
           Provider<AuditService>(create: (_) => mockAuditService),
         ],
         child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', ''),
+            Locale('he', ''),
+          ],
+          locale: const Locale('en', ''),
           home: Builder(
             builder: (context) {
               return Scaffold(
@@ -112,6 +127,7 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
     // Initial state: Home screen
     expect(find.text("Go to Create Report"), findsOneWidget);

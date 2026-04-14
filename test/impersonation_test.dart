@@ -14,6 +14,7 @@ void main() {
         email: 'test@example.com',
         displayName: 'Test User',
         role: 'reporter',
+        organizationId: 'test-org-id',
       );
     });
 

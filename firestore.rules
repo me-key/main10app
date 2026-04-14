@@ -107,5 +107,13 @@ service cloud.firestore {
       allow update, delete: if (hasRole('manager') || hasRole('admin')) 
                             && resource.data.organizationId == getUserOrg();
     }
+
+    // Global app configuration (e.g., trial settings)
+    match /config/{docId} {
+      // Any authenticated user can read (needed to get contactEmail on login)
+      allow read: if request.auth != null;
+      // Only super_admin can write
+      allow write: if hasRole('super_admin');
+    }
   }
 }

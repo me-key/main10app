@@ -8,6 +8,9 @@ import 'package:main10app/services/user_service.dart';
 import 'package:main10app/models/report.dart';
 import 'package:main10app/models/user_profile.dart';
 import 'package:main10app/providers/theme_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:main10app/l10n/app_localizations.dart';
+import 'package:main10app/providers/locale_provider.dart';
 
 class MockThemeProvider extends ChangeNotifier implements ThemeProvider {
   @override
@@ -22,12 +25,21 @@ class MockThemeProvider extends ChangeNotifier implements ThemeProvider {
   void toggleTheme() {}
 }
 
+class MockLocaleProvider extends ChangeNotifier implements LocaleProvider {
+  @override
+  Locale get locale => const Locale('en');
+  @override
+  Future<void> setLocale(Locale locale) async {}
+  @override
+  void toggleLocale() {}
+}
+
 class MockReportService extends ReportService {
   final List<Report> reports;
   MockReportService(this.reports);
 
   @override
-  Stream<List<Report>> getReports({String? status, int limit = 50}) {
+  Stream<List<Report>> getReports(String organizationId, {String? status, int limit = 50}) {
     if (status == null) return Stream.value(reports.take(limit).toList());
     return Stream.value(reports.where((r) => r.status == status).take(limit).toList());
   }
@@ -35,11 +47,23 @@ class MockReportService extends ReportService {
 
 class MockAuthService extends AuthService {
   @override
+  String? get currentUserId => 'manager_1';
+  @override
   UserProfile? get impersonatedProfile => null;
   @override
   void stopImpersonating() {}
   @override
   Future<void> signOut() async {}
+  @override
+  Future<UserProfile?> getUserProfile(String uid) async {
+    return UserProfile(
+      uid: uid,
+      email: 'manager@test.com',
+      displayName: 'Test Manager',
+      role: 'manager',
+      organizationId: 'test_org_id',
+    );
+  }
 }
 
 class MockUserService extends UserService {
@@ -52,7 +76,7 @@ class MockUserService extends UserService {
   }
 
   @override
-  Stream<List<UserProfile>> getMaintainers({int limit = 50}) {
+  Stream<List<UserProfile>> getMaintainers(String organizationId, {int limit = 50}) {
     return Stream.value(userProfiles.values.where((u) => u.role == 'maintainer').toList());
   }
 }
@@ -76,6 +100,7 @@ void main() {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       reportDateTime: DateTime.now(),
+      organizationId: 'test_org_id',
     );
 
     final maintainer = UserProfile(
@@ -83,6 +108,7 @@ void main() {
       email: 'm1@test.com',
       displayName: 'Bob Fixer',
       role: 'maintainer',
+      organizationId: 'test_org_id',
     );
 
     final mockReportService = MockReportService([report]);
@@ -96,15 +122,26 @@ void main() {
           Provider<UserService>(create: (_) => mockUserService),
           Provider<AuthService>(create: (_) => mockAuthService),
           ChangeNotifierProvider<ThemeProvider>(create: (_) => MockThemeProvider()),
+          ChangeNotifierProvider<LocaleProvider>(create: (_) => MockLocaleProvider()),
         ],
         child: const MaterialApp(
+          localizationsDelegates: [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [
+            Locale('en', ''),
+            Locale('he', ''),
+          ],
+          locale: Locale('en', ''),
           home: ManagerHome(),
         ),
       ),
     );
 
-    // Wait for stream to load
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify report card is visible
     expect(find.text('Leaking Faucet'), findsOneWidget);
@@ -115,7 +152,7 @@ void main() {
     await tester.pump();
 
     // Verify assignee name is visible
-    expect(find.text('Assigned to: Bob Fixer'), findsOneWidget);
+    expect(find.text('Assigned: Bob Fixer'), findsOneWidget);
   });
 
   testWidgets('ManagerReportCard displays assignee name for in_progress tasks', (WidgetTester tester) async {
@@ -136,6 +173,7 @@ void main() {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       reportDateTime: DateTime.now(),
+      organizationId: 'test_org_id',
     );
 
     final maintainer = UserProfile(
@@ -143,6 +181,7 @@ void main() {
       email: 'm2@test.com',
       displayName: 'Alice Mender',
       role: 'maintainer',
+      organizationId: 'test_org_id',
     );
 
     final mockReportService = MockReportService([report]);
@@ -156,15 +195,26 @@ void main() {
           Provider<UserService>(create: (_) => mockUserService),
           Provider<AuthService>(create: (_) => mockAuthService),
           ChangeNotifierProvider<ThemeProvider>(create: (_) => MockThemeProvider()),
+          ChangeNotifierProvider<LocaleProvider>(create: (_) => MockLocaleProvider()),
         ],
         child: const MaterialApp(
+          localizationsDelegates: [
+            AppLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: [
+            Locale('en', ''),
+            Locale('he', ''),
+          ],
+          locale: Locale('en', ''),
           home: ManagerHome(),
         ),
       ),
     );
 
-    // Wait for stream to load
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     // Verify report card is visible
     expect(find.text('Broken Light'), findsOneWidget);
@@ -175,6 +225,6 @@ void main() {
     await tester.pump();
 
     // Verify assignee name is visible
-    expect(find.text('Assigned to: Alice Mender'), findsOneWidget);
+    expect(find.text('Assigned: Alice Mender'), findsOneWidget);
   });
 }

@@ -3,7 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:async';
 import '../models/user_profile.dart';
+import '../models/organization.dart';
 import '../firebase_options.dart';
+import 'trial_service.dart';
 
 class AuthService {
   final FirebaseAuth? _auth;
@@ -135,6 +137,9 @@ class AuthService {
              message: 'Your account is pending approval by an administrator.',
            );
          }
+
+         // --- Trial period enforcement ---
+         await _enforceTrialPeriod(profile);
       }
 
       print("AuthService: Sign in successful in ${stopwatch.elapsedMilliseconds}ms");
@@ -144,6 +149,35 @@ class AuthService {
       
       // Rethrow so UI can handle it
       rethrow;
+    }
+  }
+
+  /// Checks whether the user's organization is within its trial period.
+  /// Throws [FirebaseAuthException] with code 'trial-expired' if expired.
+  Future<void> _enforceTrialPeriod(UserProfile profile) async {
+    if (_firestore == null || profile.organizationId.isEmpty) return;
+    try {
+      final orgDoc = await _firestore!
+          .collection('organizations')
+          .doc(profile.organizationId)
+          .get();
+      if (!orgDoc.exists) return;
+
+      final org = Organization.fromSnapshot(orgDoc);
+      if (org.isTrialExpired) {
+        print("AuthService: Trial expired for org ${org.id}. Signing out.");
+        await _auth!.signOut();
+        // Fetch contact email to pass to the UI
+        final contactEmail = await TrialService().getContactEmail();
+        throw FirebaseAuthException(
+          code: 'trial-expired',
+          message: contactEmail,
+        );
+      }
+    } catch (e) {
+      if (e is FirebaseAuthException) rethrow;
+      print("AuthService: Could not verify trial status: $e");
+      // On error, fail open — do not block user login
     }
   }
 

@@ -48,11 +48,17 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = e.code == 'not-approved' 
-            ? e.message 
-            : e.message ?? AppLocalizations.of(context).get('auth_error');
           if (e.code == 'not-approved') {
+            _errorMessage = e.message;
             Navigator.of(context).pushNamed('/approval-pending');
+          } else if (e.code == 'trial-expired') {
+            _errorMessage = null;
+            Navigator.of(context).pushNamed(
+              '/trial-expired',
+              arguments: e.message, // carries the contact email
+            );
+          } else {
+            _errorMessage = e.message ?? AppLocalizations.of(context).get('auth_error');
           }
         });
       }
