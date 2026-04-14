@@ -353,11 +353,13 @@ class _UserCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (!isCurrentUser)
+                  /*
                   IconButton(
                     tooltip: AppLocalizations.of(context).get('login_as_user'),
                     icon: const Icon(Icons.login_rounded, color: Colors.green, size: 20),
                     onPressed: () => authService.loginAs(user),
                   ),
+                  */
                 IconButton(
                   tooltip: AppLocalizations.of(context).get('edit_user'),
                   icon: const Icon(Icons.edit_rounded, size: 20),
