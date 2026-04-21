@@ -104,14 +104,12 @@ class _AdminHomeState extends State<AdminHome> {
           const SizedBox(width: 8),
           const ThemeToggleButton(),
           const SizedBox(width: 8),
-          /* 
           IconButton.filledTonal(
             onPressed: () => _showInviteDialog(context),
             icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
             tooltip: l10n.get('generate_invite_link') ?? 'Generate Invite Link',
           ),
           const SizedBox(width: 8),
-          */
           IconButton.filledTonal(
             onPressed: () => Navigator.pushNamed(context, '/admin-approvals'),
             icon: const Icon(Icons.how_to_reg_rounded, size: 20),
@@ -224,7 +222,7 @@ class _AdminHomeState extends State<AdminHome> {
     final l10n = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final encryptedOrgId = EncryptionUtils.encrypt(_organizationId!);
-    final inviteLink = "https://maintens.app/signup?orgId=$encryptedOrgId";
+    final inviteLink = "https://app.maintens.com/signup?orgId=$encryptedOrgId";
 
     showDialog(
       context: context,

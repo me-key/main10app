@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart'; 
 import 'theme.dart';
@@ -21,6 +22,7 @@ import 'ui/admin/admin_approval_screen.dart';
 import 'utils/encryption_utils.dart';
 
 void main() async {
+  usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
