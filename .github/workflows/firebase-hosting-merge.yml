@@ -1,0 +1,33 @@
+name: Deploy to Firebase Hosting on Merge
+on:
+  push:
+    branches:
+      - main # Or your default branch name
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 1. Setup Flutter environment
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      # 2. Build the Flutter Web app
+      - name: Build Web
+        run: |
+          flutter pub get
+          flutter build web --release
+
+      # 3. Deploy to the specific Firebase Target
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MAIN10APP_1C326 }}'
+          channelId: live
+          # CRITICAL: This must match your Site ID or Target name
+          target: my-flutter-target 
+          projectId: main10app-1c326

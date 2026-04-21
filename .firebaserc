@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "main10app-1c326"
-  }
+  },
+  "targets": {
+    "main10app-1c326": {
+      "hosting": {
+        "my-flutter-target": [
+          "maintens-flutter-app"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
