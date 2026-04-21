@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
@@ -22,16 +22,32 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   void _submit() async {
+    final l10n = AppLocalizations.of(context);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() => _errorMessage = l10n.get('email_required'));
+      return;
+    }
+    
+    if (!email.contains('@')) {
+      setState(() => _errorMessage = l10n.get('invalid_email_format'));
+      return;
+    }
+
+    if (password.isEmpty) {
+      setState(() => _errorMessage = l10n.get('password_required'));
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
     
     try {
-      User? user = await _auth.signIn(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
+      User? user = await _auth.signIn(email, password);
 
       if (mounted) {
         setState(() {
@@ -40,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (user == null) {
           setState(() {
-            _errorMessage = AppLocalizations.of(context).get('invalid_credentials');
+            _errorMessage = l10n.get('invalid_credentials');
           });
         }
       }
@@ -48,17 +64,36 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          if (e.code == 'not-approved') {
-            _errorMessage = e.message;
-            Navigator.of(context).pushNamed('/approval-pending');
-          } else if (e.code == 'trial-expired') {
-            _errorMessage = null;
-            Navigator.of(context).pushNamed(
-              '/trial-expired',
-              arguments: e.message, // carries the contact email
-            );
-          } else {
-            _errorMessage = e.message ?? AppLocalizations.of(context).get('auth_error');
+          switch (e.code) {
+            case 'not-approved':
+              _errorMessage = e.message;
+              Navigator.of(context).pushNamed('/approval-pending');
+              break;
+            case 'trial-expired':
+              _errorMessage = null;
+              Navigator.of(context).pushNamed(
+                '/trial-expired',
+                arguments: e.message,
+              );
+              break;
+            case 'user-not-found':
+              _errorMessage = l10n.get('user_not_found');
+              break;
+            case 'wrong-password':
+            case 'invalid-credential':
+              _errorMessage = l10n.get('wrong_password');
+              break;
+            case 'invalid-email':
+              _errorMessage = l10n.get('invalid_email_format');
+              break;
+            case 'user-disabled':
+              _errorMessage = l10n.get('user_disabled');
+              break;
+            case 'too-many-requests':
+              _errorMessage = l10n.get('too_many_requests');
+              break;
+            default:
+              _errorMessage = e.message ?? l10n.get('auth_error');
           }
         });
       }
@@ -66,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = AppLocalizations.of(context).get('unexpected_error');
+          _errorMessage = l10n.get('unexpected_error');
         });
       }
     }
@@ -210,43 +245,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
 
-          // Language toggle
-          Positioned(
-            top: 16,
-            right: 16,
-            child: Consumer<LocaleProvider>(
-              builder: (context, localeProvider, child) {
-                final isHebrew = localeProvider.locale.languageCode == 'he';
-                return Container(
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-                  ),
-                  child: IconButton(
-                    onPressed: () => localeProvider.toggleLocale(),
-                    icon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.language, size: 20, color: colorScheme.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          isHebrew ? 'EN' : 'HE',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    tooltip: isHebrew ? 'Switch to English' : 'עבור לעברית',
-                  ),
-                );
-              },
-            ),
-          ),
-          
           SafeArea(
             child: ResponsiveCenter(
               maxWidth: 450,
@@ -430,7 +428,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            l10n.get('no_account') ?? "Don't have an account?",
+                            l10n.get('no_account'),
                             style: textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
@@ -438,7 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextButton(
                             onPressed: () => Navigator.of(context).pushNamed('/signup'),
                             child: Text(
-                              l10n.get('sign_up_link') ?? "Sign Up",
+                              l10n.get('sign_up_link'),
                               style: const TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -452,6 +450,46 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+
+          // Language toggle
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: Consumer<LocaleProvider>(
+                builder: (context, localeProvider, child) {
+                  final isHebrew = localeProvider.locale.languageCode == 'he';
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+                    ),
+                    child: IconButton(
+                      onPressed: () => localeProvider.toggleLocale(),
+                      icon: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.language, size: 20, color: colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            isHebrew ? 'EN' : 'HE',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.primary,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      tooltip: isHebrew ? 'Switch to English' : 'עבור לעברית',
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+
         ],
       ),
     );

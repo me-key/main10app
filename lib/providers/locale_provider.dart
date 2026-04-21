@@ -13,8 +13,19 @@ class LocaleProvider extends ChangeNotifier {
 
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    final languageCode = prefs.getString(_localeKey);
-    if (languageCode != null) {
+    String? languageCode = prefs.getString(_localeKey);
+    
+    if (languageCode == null) {
+      // Get device language
+      final deviceLocale = WidgetsBinding.instance.platformDispatcher.locale;
+      if (['en', 'he'].contains(deviceLocale.languageCode)) {
+        languageCode = deviceLocale.languageCode;
+      } else {
+        languageCode = 'he'; // Default fallback if device language is not supported
+      }
+    }
+    
+    if (_locale.languageCode != languageCode) {
       _locale = Locale(languageCode);
       notifyListeners();
     }

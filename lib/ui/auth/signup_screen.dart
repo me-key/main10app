@@ -130,6 +130,31 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 24),
+                    
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline_rounded, color: colorScheme.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              l10n.get('sign_up_notice'),
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 32),
                     
                     if (_errorMessage != null)
