@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
+import '../../providers/environment_provider.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,6 +21,50 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _auth = AuthService();
   bool _isLoading = false;
   String? _errorMessage;
+  int _logoTapCount = 0;
+  DateTime? _lastLogoTap;
+
+  void _onLogoTapped() {
+    final now = DateTime.now();
+    if (_lastLogoTap == null || now.difference(_lastLogoTap!) > const Duration(seconds: 1)) {
+      _logoTapCount = 1;
+    } else {
+      _logoTapCount++;
+    }
+    _lastLogoTap = now;
+
+    if (_logoTapCount >= 7) {
+      _logoTapCount = 0;
+      _showEnvironmentDialog();
+    }
+  }
+
+  void _showEnvironmentDialog() {
+    final envProvider = Provider.of<EnvironmentProvider>(context, listen: false);
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Environment'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: AppState.values.map((state) {
+            return RadioListTile<AppState>(
+              title: Text(state.name.toUpperCase()),
+              value: state,
+              groupValue: envProvider.currentState,
+              onChanged: (value) {
+                if (value != null) {
+                  envProvider.setEnvironment(value);
+                  Navigator.of(context).pop();
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
 
   void _submit() async {
     final l10n = AppLocalizations.of(context);
@@ -262,10 +307,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             padding: const EdgeInsets.all(16),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: Image.asset(
-                                'assets/images/main10applogo.png',
-                                height: 200, // Increased size
-                                fit: BoxFit.contain,
+                              child: GestureDetector(
+                                onTap: _onLogoTapped,
+                                child: Image.asset(
+                                  'assets/images/main10applogo.png',
+                                  height: 200, // Increased size
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             ),
                           ),                        

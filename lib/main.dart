@@ -12,6 +12,7 @@ import 'services/location_service.dart';
 import 'services/audit_service.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/environment_provider.dart';
 import 'ui/role_wrapper.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -41,6 +42,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => EnvironmentProvider()),
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<ReportService>(create: (_) => ReportService()),
         Provider<UserService>(create: (_) => UserService()),
@@ -58,9 +60,21 @@ class MaintensApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ThemeProvider, LocaleProvider>(
-      builder: (context, themeProvider, localeProvider, child) {
+    return Consumer3<ThemeProvider, LocaleProvider, EnvironmentProvider>(
+      builder: (context, themeProvider, localeProvider, environmentProvider, child) {
         return MaterialApp(
+          builder: (context, widget) {
+            if (environmentProvider.isProd || widget == null) return widget ?? const SizedBox();
+            return Directionality(
+              textDirection: TextDirection.ltr,
+              child: Banner(
+                message: environmentProvider.isDev ? 'DEV' : 'TEST',
+                location: BannerLocation.topEnd,
+                color: environmentProvider.isDev ? Colors.red : Colors.orange,
+                child: widget,
+              ),
+            );
+          },
           onGenerateTitle: (context) => AppLocalizations.of(context).get('app_title'),
           theme: appTheme,
           darkTheme: appDarkTheme,
