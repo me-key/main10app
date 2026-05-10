@@ -5,7 +5,7 @@ enum AppState { dev, test, prod }
 
 class EnvironmentProvider extends ChangeNotifier {
   static const String _envKey = 'app_env_override';
-  AppState _currentState = AppState.dev;
+  AppState _currentState = AppState.prod;
   bool _isInitialized = false;
 
   AppState get currentState => _currentState;
@@ -42,17 +42,17 @@ class EnvironmentProvider extends ChangeNotifier {
   }
 
   AppState _getDefaultEnvironment() {
-    const defaultEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+    const defaultEnv = String.fromEnvironment('APP_ENV', defaultValue: 'prod');
     switch (defaultEnv.toLowerCase()) {
-      case 'prod':
-      case 'production':
-        return AppState.prod;
-      case 'test':
-        return AppState.test;
       case 'dev':
       case 'development':
-      default:
         return AppState.dev;
+      case 'test':
+        return AppState.test;
+      case 'prod':
+      case 'production':
+      default:
+        return AppState.prod;
     }
   }
 

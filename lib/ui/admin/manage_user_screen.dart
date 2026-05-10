@@ -161,12 +161,13 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                   _buildLabel(l10n.get('system_role')),
                   DropdownButtonFormField<String>(
                     value: _selectedRole,
-                    items: ['admin', 'manager', 'maintainer', 'reporter'].map((role) {
+                    items: ['admin', 'manager', 'maintainer', 'reporter', 'tester'].map((role) {
                       String roleLabel = role;
                       if (role == 'admin') roleLabel = l10n.get('admins');
                       else if (role == 'manager') roleLabel = l10n.get('managers');
                       else if (role == 'maintainer') roleLabel = l10n.get('maintainers');
                       else if (role == 'reporter') roleLabel = l10n.get('reporters');
+                      else if (role == 'tester') roleLabel = 'Tester';
                       
                       return DropdownMenuItem(
                         value: role, 

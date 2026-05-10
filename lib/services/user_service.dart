@@ -47,7 +47,7 @@ class UserService {
      if (_firestore == null) return Stream.value([]);
      return _firestore!.collection(_collection)
          .where('organizationId', isEqualTo: organizationId)
-         .where('role', isEqualTo: 'maintainer')
+         .where('role', whereIn: ['maintainer', 'tester'])
          .limit(limit)
          .snapshots().map((snapshot) {
       return snapshot.docs.map((doc) => UserProfile.fromMap(doc.id, doc.data())).toList();

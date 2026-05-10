@@ -6,16 +6,19 @@ import '../models/user_profile.dart';
 import '../models/organization.dart';
 import '../firebase_options.dart';
 import 'trial_service.dart';
+import '../providers/environment_provider.dart';
 
 class AuthService {
   final FirebaseAuth? _auth;
   final FirebaseFirestore? _firestore;
 
+  final EnvironmentProvider? _env;
   UserProfile? _impersonatedProfile;
   final _impersonationController = StreamController<UserProfile?>.broadcast();
 
-  AuthService() 
-      : _auth = _tryGetAuth(),
+  AuthService({EnvironmentProvider? env}) 
+      : _env = env,
+        _auth = _tryGetAuth(),
         _firestore = _tryGetFirestore();
 
   static FirebaseAuth? _tryGetAuth() {
@@ -61,6 +64,23 @@ class AuthService {
     _impersonationController.add(null);
   }
 
+  Future<void> mockRole(String role) async {
+    if (currentUser == null) return;
+    final currentUserData = await getUserProfile(currentUser!.uid);
+    if (currentUserData != null && currentUserData.role == "tester") {
+      _impersonatedProfile = UserProfile(
+        uid: currentUserData.uid,
+        email: currentUserData.email,
+        displayName: currentUserData.displayName,
+        role: role,
+        organizationId: currentUserData.organizationId,
+        phoneNumber: currentUserData.phoneNumber,
+        isApproved: currentUserData.isApproved,
+      );
+      _impersonationController.add(_impersonatedProfile);
+    }
+  }
+
   Future<UserProfile?> getUserProfile(String uid) async {
     if (_firestore == null) return null;
     
@@ -88,6 +108,7 @@ class AuthService {
             .collection('users')
             .doc(uid)
             .get(const GetOptions(source: Source.cache));
+
         print("AuthService: Fetched profile from cache in ${stopwatch.elapsedMilliseconds}ms");
       } catch (e2) {
         print("AuthService: Cache fetch failed: $e2");
@@ -135,6 +156,16 @@ class AuthService {
            throw FirebaseAuthException(
              code: 'not-approved',
              message: 'Your account is pending approval by an administrator.',
+           );
+         }
+
+         // --- Tester role environment check ---
+         if (profile.role == 'tester' && _env != null && _env!.isProd) {
+           print("AuthService: Tester role not allowed in production. Signing out.");
+           await _auth!.signOut();
+           throw FirebaseAuthException(
+             code: 'tester-not-allowed',
+             message: 'Your account type is disabled on this environment.',
            );
          }
 
@@ -207,6 +238,7 @@ class AuthService {
               'role': role,
               'phoneNumber': phoneNumber,
               'organizationId': organizationId,
+              'isApproved': true,
             });
           }
         } finally {

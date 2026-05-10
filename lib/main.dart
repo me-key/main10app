@@ -43,7 +43,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => EnvironmentProvider()),
-        Provider<AuthService>(create: (_) => AuthService()),
+        ProxyProvider<EnvironmentProvider, AuthService>(
+          update: (_, env, __) => AuthService(env: env),
+        ),
         Provider<ReportService>(create: (_) => ReportService()),
         Provider<UserService>(create: (_) => UserService()),
         Provider<StorageService>(create: (_) => StorageService()),

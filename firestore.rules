@@ -6,7 +6,8 @@ service cloud.firestore {
     function hasRole(role) {
       return request.auth != null && 
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'tester');
     }
 
     // Helper function to get user's organization

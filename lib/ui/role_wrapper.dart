@@ -10,6 +10,7 @@ import 'manager/manager_home.dart';
 import 'admin/admin_home.dart';
 import 'super_admin/super_admin_screen.dart';
 import '../l10n/app_localizations.dart';
+import 'tester/tester_home.dart';
 
 class RoleWrapper extends StatefulWidget {
   const RoleWrapper({super.key});
@@ -110,6 +111,7 @@ class _RoleWrapperState extends State<RoleWrapper> {
       case 'admin': return const AdminHome();
       case 'manager': return const ManagerHome();
       case 'maintainer': return const MaintainerHome();
+      case 'tester': return const TesterHome();
       case 'reporter': 
       default:
         return const ReporterHome();

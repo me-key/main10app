@@ -137,6 +137,7 @@ class _AdminHomeState extends State<AdminHome> {
                 _buildFilterChip(AppLocalizations.of(context).get('managers'), 'manager', Icons.manage_accounts_rounded),
                 _buildFilterChip(AppLocalizations.of(context).get('maintainers'), 'maintainer', Icons.engineering_rounded),
                 _buildFilterChip(AppLocalizations.of(context).get('reporters'), 'reporter', Icons.person_pin_circle_rounded),
+                _buildFilterChip('Tester', 'tester', Icons.bug_report_rounded),
               ],
             ),
           ),
@@ -385,6 +386,7 @@ class _UserCard extends StatelessWidget {
       case 'manager': return Colors.blue.shade700;
       case 'maintainer': return Colors.orange.shade700;
       case 'reporter': return Colors.green.shade700;
+      case 'tester': return Colors.purple.shade700;
       default: return Colors.grey;
     }
   }
@@ -430,6 +432,7 @@ class _RoleBadge extends StatelessWidget {
       case 'manager': color = Colors.blue.shade700; break;
       case 'maintainer': color = Colors.orange.shade700; break;
       case 'reporter': color = Colors.green.shade700; break;
+      case 'tester': color = Colors.purple.shade700; break;
       default: color = Colors.grey;
     }
 

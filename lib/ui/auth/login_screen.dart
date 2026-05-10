@@ -18,11 +18,18 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final AuthService _auth = AuthService();
+  // Use the injected AuthService from Provider
+  late final AuthService _auth;
   bool _isLoading = false;
   String? _errorMessage;
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = Provider.of<AuthService>(context, listen: false);
+  }
 
   void _onLogoTapped() {
     final now = DateTime.now();
@@ -136,6 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
               break;
             case 'too-many-requests':
               _errorMessage = l10n.get('too_many_requests');
+              break;
+            case 'tester-not-allowed':
+              _errorMessage = 'Your account type is disabled on this environment.';
               break;
             default:
               _errorMessage = e.message ?? l10n.get('auth_error');
