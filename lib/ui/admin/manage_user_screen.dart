@@ -6,6 +6,7 @@ import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/password_field.dart';
 
 class ManageUserScreen extends StatefulWidget {
   final UserProfile? user;
@@ -143,13 +144,10 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                   if (widget.user == null) ...[
                     const SizedBox(height: 24),
                     _buildLabel(l10n.get('initial_password')),
-                    TextFormField(
+                    PasswordField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: l10n.get('choose_password_hint'),
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                      ),
-                      obscureText: true,
+                      labelText: l10n.get('initial_password'),
+                      hintText: l10n.get('choose_password_hint'),
                       validator: (v) => v!.isEmpty ? l10n.get('required') : null,
                     ),
                   ],

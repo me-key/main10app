@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/password_field.dart';
 import '../../providers/locale_provider.dart';
 import '../../providers/environment_provider.dart';
 import 'package:provider/provider.dart';
@@ -434,27 +435,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              TextField(
+                              PasswordField(
                                 controller: _passwordController,
-                                decoration: InputDecoration(
-                                  hintText: "••••••••",
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                                  filled: true,
-                                  fillColor: colorScheme.surfaceContainerLowest,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                                  ),
-                                ),
-                                obscureText: true,
+                                labelText: l10n.get('password'),
+                                hintText: "••••••••",
+                                prefixIcon: Icons.lock_outline_rounded,
                                 autofillHints: const [AutofillHints.password],
                                 onSubmitted: (_) => _submit(),
                               ),

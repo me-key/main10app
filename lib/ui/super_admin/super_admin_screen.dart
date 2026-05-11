@@ -9,6 +9,7 @@ import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/password_field.dart';
 import '../../services/trial_service.dart';
 import 'package:intl/intl.dart';
 
@@ -505,15 +506,11 @@ class _SuperAdminScreenState extends State<SuperAdminScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          PasswordField(
             controller: _adminPasswordController,
             enabled: effectiveOrgId != null && !_isAdminCreated,
-            decoration: InputDecoration(
-              labelText: AppLocalizations.of(context).get('root_password'),
-              prefixIcon: const Icon(Icons.lock),
-              border: const OutlineInputBorder(),
-            ),
-            obscureText: true,
+            labelText: AppLocalizations.of(context).get('root_password'),
+            prefixIcon: Icons.lock,
           ),
           const SizedBox(height: 24),
           FilledButton.icon(

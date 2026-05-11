@@ -4,6 +4,7 @@ import '../../services/organization_service.dart';
 import '../../models/organization.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/password_field.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String? orgId;
@@ -246,9 +247,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
+    if (obscureText) {
+      return PasswordField(
+        controller: controller,
+        labelText: label,
+        prefixIcon: icon,
+        validator: validator,
+      );
+    }
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
+      obscureText: false,
       keyboardType: keyboardType,
       validator: validator,
       decoration: InputDecoration(
