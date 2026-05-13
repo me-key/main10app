@@ -11,6 +11,7 @@ import 'services/storage_service.dart';
 import 'services/location_service.dart';
 import 'services/audit_service.dart';
 import 'services/notification_service.dart';
+import 'services/version_service.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/environment_provider.dart';
@@ -27,22 +28,24 @@ void main() async {
   usePathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
   
+  final versionService = VersionService();
+
   try {
      await Firebase.initializeApp(
        options: DefaultFirebaseOptions.currentPlatform,
      );
      // Initialize Notification Service
      await NotificationService().initialize();
+     // Initialize Version Service
+     await versionService.initialize();
   } catch (e) {
     print("Warning: Firebase initialization failed. Error: $e");
-    // On Web, we cannot call initializeApp() without options.
-    // We will proceed without Firebase, which means Auth/Firestore calls will fail.
-    // This allows the UI to at least render for verification.
   }
 
   runApp(
     MultiProvider(
       providers: [
+        Provider<VersionService>.value(value: versionService),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
         ChangeNotifierProvider(create: (_) => EnvironmentProvider()),

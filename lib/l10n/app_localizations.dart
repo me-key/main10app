@@ -282,6 +282,9 @@ class AppLocalizations {
       'notify_user_pending_approval': 'User Pending Approval',
       'notify_user_approved': 'Account Approved',
       'notification_prefs_saved': 'Notification preferences saved!',
+      'update_required_title': 'Update Required',
+      'update_required_message': 'A newer version of the app is available. Please update to continue using the app.',
+      'update_now_button': 'Update Now',
     },
     'he': {
       'app_title': 'Maintens',
@@ -555,6 +558,9 @@ class AppLocalizations {
       'notify_user_pending_approval': 'משתמש ממתין לאישור',
       'notify_user_approved': 'חשבון אושר',
       'notification_prefs_saved': 'העדפות התראות נשמרו!',
+      'update_required_title': 'נדרש עדכון',
+      'update_required_message': 'גרסה חדשה של האפליקציה זמינה. אנא עדכן כדי להמשיך להשתמש באפליקציה.',
+      'update_now_button': 'עדכן עכשיו',
     },
   };
 

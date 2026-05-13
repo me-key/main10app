@@ -11,6 +11,8 @@ import 'admin/admin_home.dart';
 import 'super_admin/super_admin_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'tester/tester_home.dart';
+import '../services/version_service.dart';
+import 'auth/force_update_screen.dart';
 
 class RoleWrapper extends StatefulWidget {
   const RoleWrapper({super.key});
@@ -26,6 +28,16 @@ class _RoleWrapperState extends State<RoleWrapper> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
+
+    final versionService = Provider.of<VersionService>(context, listen: false);
+
+    if (versionService.needsUpdate) {
+      return ForceUpdateScreen(
+        updateUrl: versionService.updateUrl,
+        currentVersion: versionService.currentVersion,
+        minVersion: versionService.minVersion,
+      );
+    }
 
     return StreamBuilder<User?>(
       stream: authService.authStateChanges,
