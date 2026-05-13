@@ -6,7 +6,7 @@ class VersionService {
   static const String _minAppVersionKey = 'min_app_version';
   static const String _forceUpdateUrlKey = 'force_update_url';
 
-  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+  FirebaseRemoteConfig? _remoteConfig;
   
   bool _needsUpdate = false;
   String _updateUrl = '';
@@ -20,28 +20,31 @@ class VersionService {
 
   Future<void> initialize() async {
     try {
+      _remoteConfig = FirebaseRemoteConfig.instance;
+      final config = _remoteConfig!;
+
       // Set default values
-      await _remoteConfig.setDefaults({
+      await config.setDefaults({
         _minAppVersionKey: '1.0.0',
         _forceUpdateUrlKey: 'https://play.google.com/store/apps/details?id=com.maintens.app', // Replace with actual URL
       });
 
       // Configure settings
-      await _remoteConfig.setConfigSettings(RemoteConfigSettings(
+      await config.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
         minimumFetchInterval: kDebugMode ? Duration.zero : const Duration(hours: 1),
       ));
 
       // Fetch and activate
-      await _remoteConfig.fetchAndActivate();
+      await config.fetchAndActivate();
 
       // Get current version
       final packageInfo = await PackageInfo.fromPlatform();
       _currentVersion = packageInfo.version;
 
       // Get min version from remote config
-      _minVersion = _remoteConfig.getString(_minAppVersionKey);
-      _updateUrl = _remoteConfig.getString(_forceUpdateUrlKey);
+      _minVersion = config.getString(_minAppVersionKey);
+      _updateUrl = config.getString(_forceUpdateUrlKey);
 
       // Compare versions
       _needsUpdate = _shouldUpdate(_currentVersion, _minVersion);

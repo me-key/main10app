@@ -13,6 +13,7 @@ import '../l10n/app_localizations.dart';
 import 'tester/tester_home.dart';
 import '../services/version_service.dart';
 import 'auth/force_update_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class RoleWrapper extends StatefulWidget {
   const RoleWrapper({super.key});
@@ -31,7 +32,7 @@ class _RoleWrapperState extends State<RoleWrapper> {
 
     final versionService = Provider.of<VersionService>(context, listen: false);
 
-    if (versionService.needsUpdate) {
+    if (versionService.needsUpdate && !kIsWeb) {
       return ForceUpdateScreen(
         updateUrl: versionService.updateUrl,
         currentVersion: versionService.currentVersion,
