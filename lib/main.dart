@@ -10,6 +10,7 @@ import 'services/user_service.dart';
 import 'services/storage_service.dart';
 import 'services/location_service.dart';
 import 'services/audit_service.dart';
+import 'services/notification_service.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/environment_provider.dart';
@@ -30,6 +31,8 @@ void main() async {
      await Firebase.initializeApp(
        options: DefaultFirebaseOptions.currentPlatform,
      );
+     // Initialize Notification Service
+     await NotificationService().initialize();
   } catch (e) {
     print("Warning: Firebase initialization failed. Error: $e");
     // On Web, we cannot call initializeApp() without options.
@@ -51,6 +54,7 @@ void main() async {
         Provider<StorageService>(create: (_) => StorageService()),
         Provider<LocationService>(create: (_) => LocationService()),
         Provider<AuditService>(create: (_) => AuditService()),
+        Provider<NotificationService>(create: (_) => NotificationService()),
       ],
       child: const MaintensApp(),
     ),

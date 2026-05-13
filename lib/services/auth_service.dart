@@ -6,6 +6,7 @@ import '../models/user_profile.dart';
 import '../models/organization.dart';
 import '../firebase_options.dart';
 import 'trial_service.dart';
+import 'notification_service.dart';
 import '../providers/environment_provider.dart';
 
 class AuthService {
@@ -160,6 +161,12 @@ class AuthService {
          }
 
          // --- Tester role environment check ---
+         if (profile.role == 'tester') {
+           if (_env != null && _env!.currentState != AppState.test) {
+             print("AuthService: Tester detected. Auto-switching environment to TEST.");
+             _env!.setEnvironment(AppState.test);
+           }
+         }
          if (profile.role == 'tester' && _env != null && _env!.isProd) {
            print("AuthService: Tester role not allowed in production. Signing out.");
            await _auth!.signOut();
@@ -174,6 +181,17 @@ class AuthService {
       }
 
       print("AuthService: Sign in successful in ${stopwatch.elapsedMilliseconds}ms");
+      
+      // Save FCM Token if available
+      try {
+        final token = await NotificationService().token;
+        if (token != null) {
+          await updateFcmToken(result.user!.uid, token);
+        }
+      } catch (e) {
+        print("AuthService: Error saving FCM token during sign in: $e");
+      }
+
       return result.user;
     } catch (e) {
       print("AuthService: Sign in failed after ${stopwatch.elapsedMilliseconds}ms. Error: $e");
@@ -212,9 +230,6 @@ class AuthService {
     }
   }
 
-  Future<void> signOut() async {
-    if (_auth != null) await _auth!.signOut();
-  }
   
   Future<void> createUser(String email, String password, String role, String name, String phoneNumber, String organizationId) async {
       if (_auth == null || _firestore == null) return;
@@ -324,6 +339,7 @@ class AuthService {
     }
   }
 
+
   Future<void> updateUserProfile({
     required String uid,
     required String displayName,
@@ -340,6 +356,39 @@ class AuthService {
     } catch (e) {
       print("AuthService: Error updating profile: $e");
       rethrow;
+    }
+  }
+
+  Future<void> updateNotificationPreferences(String uid, NotificationPreferences prefs) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore!.collection('users').doc(uid).update({
+        'notificationPreferences': prefs.toMap(),
+      });
+    } catch (e) {
+      print("AuthService: Error updating notification preferences: $e");
+      rethrow;
+    }
+  }
+
+  Future<void> updateFcmToken(String uid, String? token) async {
+    if (_firestore == null) return;
+    try {
+      await _firestore!.collection('users').doc(uid).update({
+        'fcmToken': token,
+      });
+    } catch (e) {
+      print("AuthService: Error updating FCM token: $e");
+    }
+  }
+
+  Future<void> signOut() async {
+    if (_auth != null) {
+      final uid = currentUserId;
+      if (uid != null) {
+        await updateFcmToken(uid, null);
+      }
+      await _auth!.signOut();
     }
   }
 }

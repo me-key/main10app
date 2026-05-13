@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../models/user_profile.dart';
 import '../l10n/app_localizations.dart';
+import 'widgets/notification_preferences_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,6 +16,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  NotificationPreferences? _notificationPrefs;
   
   bool _isLoading = false;
   UserProfile? _profile;
@@ -36,6 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _profile = profile;
           _nameController.text = profile.displayName;
           _phoneController.text = profile.phoneNumber;
+          _notificationPrefs = profile.notificationPreferences;
         });
       }
     }
@@ -56,6 +59,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           displayName: _nameController.text.trim(),
           phoneNumber: _phoneController.text.trim(),
         );
+
+        if (_notificationPrefs != null) {
+          await authService.updateNotificationPreferences(_profile!.uid, _notificationPrefs!);
+        }
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -155,6 +162,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 32),
+                    if (_notificationPrefs != null) ...[
+                      NotificationPreferencesWidget(
+                        preferences: _notificationPrefs!,
+                        onChanged: (prefs) => _notificationPrefs = prefs,
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                     Text(
                       l10n.get('account_credentials'),
                       style: theme.textTheme.labelLarge?.copyWith(
