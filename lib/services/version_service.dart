@@ -38,9 +38,9 @@ class VersionService {
       // Fetch and activate
       await config.fetchAndActivate();
 
-      // Get current version
+      // Get current version and build number
       final packageInfo = await PackageInfo.fromPlatform();
-      _currentVersion = packageInfo.version;
+      _currentVersion = "${packageInfo.version}+${packageInfo.buildNumber}";
 
       // Get min version from remote config
       _minVersion = config.getString(_minAppVersionKey);
@@ -61,16 +61,31 @@ class VersionService {
 
   bool _shouldUpdate(String current, String min) {
     try {
-      final currentParts = current.split('.').map(int.parse).toList();
-      final minParts = min.split('.').map(int.parse).toList();
+      // Split by '+' to separate semantic version from build number
+      final currentParts = current.split('+');
+      final minParts = min.split('+');
+
+      // 1. Compare semantic version (X.Y.Z)
+      final currentSemVer = currentParts[0].split('.').map(int.parse).toList();
+      final minSemVer = minParts[0].split('.').map(int.parse).toList();
 
       for (int i = 0; i < 3; i++) {
-        final currentPart = i < currentParts.length ? currentParts[i] : 0;
-        final minPart = i < minParts.length ? minParts[i] : 0;
-
-        if (currentPart < minPart) return true;
-        if (currentPart > minPart) return false;
+        final c = i < currentSemVer.length ? currentSemVer[i] : 0;
+        final m = i < minSemVer.length ? minSemVer[i] : 0;
+        if (c < m) return true;
+        if (c > m) return false;
       }
+
+      // 2. If semantic versions are equal, compare build numbers
+      if (currentParts.length > 1 && minParts.length > 1) {
+        final currentBuild = int.tryParse(currentParts[1]) ?? 0;
+        final minBuild = int.tryParse(minParts[1]) ?? 0;
+        if (currentBuild < minBuild) return true;
+      } else if (minParts.length > 1) {
+        // Server requires a build number but app doesn't have one
+        return true;
+      }
+
       return false;
     } catch (e) {
       if (kDebugMode) {
