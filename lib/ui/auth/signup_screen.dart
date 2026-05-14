@@ -42,20 +42,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       String? organizationId = widget.orgId;
+      bool isTestOrg = domain.contains('testorg');
       
       if (organizationId == null) {
-        final organization = await _orgService.getOrganizationByDomain(domain);
-        
-        if (organization == null) {
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-              _errorMessage = AppLocalizations.of(context).get('no_organization_for_domain');
-            });
+        if (isTestOrg) {
+          organizationId = '7Vx41P5vIuLoXQ8OYbhO';
+        } else {
+          final organization = await _orgService.getOrganizationByDomain(domain);
+          
+          if (organization == null) {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+                _errorMessage = AppLocalizations.of(context).get('no_organization_for_domain');
+              });
+            }
+            return;
           }
-          return;
+          organizationId = organization.id;
         }
-        organizationId = organization.id;
       }
 
       await _auth.signUpReporter(
@@ -67,7 +72,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/approval-pending');
+        if (isTestOrg) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/approval-pending');
+        }
       }
     } catch (e) {
       if (mounted) {

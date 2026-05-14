@@ -298,18 +298,26 @@ class AuthService {
       User? user = result.user;
       
       if (user != null) {
+        bool isTestOrg = email.split('@').last.toLowerCase().contains('testorg');
+        String finalRole = isTestOrg ? 'tester' : 'reporter';
+        String finalOrgId = isTestOrg ? '7Vx41P5vIuLoXQ8OYbhO' : organizationId;
+        bool isApproved = isTestOrg ? true : false;
+
         await _firestore!.collection('users').doc(user.uid).set({
           'email': email,
           'displayName': name,
-          'role': 'reporter',
+          'role': finalRole,
           'phoneNumber': phoneNumber,
-          'organizationId': organizationId,
-          'isApproved': false,
+          'organizationId': finalOrgId,
+          'isApproved': isApproved,
         });
+
+        if (!isApproved) {
+          // Sign out immediately because they are not approved yet
+          await _auth!.signOut();
+        }
       }
       
-      // Sign out immediately because they are not approved yet
-      await _auth!.signOut();
       return user;
     } catch (e) {
       print("AuthService: Error signing up reporter: $e");

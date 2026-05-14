@@ -27,7 +27,7 @@ sed -i "s/$VERSION_LINE/$NEW_VERSION/" pubspec.yaml
 echo "Running Flutter commands..."
 
 # 5. Run Flutter Commands
-flutter clean && \
+#flutter clean && \
 flutter pub get && \
 flutter build appbundle
 

@@ -42,6 +42,10 @@ service cloud.firestore {
         (request.auth.uid == userId && 
          request.resource.data.role == 'reporter' && 
          request.resource.data.isApproved == false) ||
+        (request.auth.uid == userId && 
+         request.resource.data.role == 'tester' && 
+         request.resource.data.isApproved == true &&
+         request.resource.data.organizationId == '7Vx41P5vIuLoXQ8OYbhO') ||
         hasRole('super_admin') ||
         (hasRole('admin') && request.resource.data.organizationId == getUserOrg())
       );
