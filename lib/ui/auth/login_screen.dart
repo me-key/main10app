@@ -163,6 +163,40 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _submitTestLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final randomId = DateTime.now().millisecondsSinceEpoch;
+    final email = 'test_$randomId@testorg.com';
+    final password = 'testPassword123';
+
+    try {
+      await _auth.signUpReporter(
+        email: email,
+        password: password,
+        name: 'Test User $randomId',
+        phoneNumber: '0501234567',
+        organizationId: '7Vx41P5vIuLoXQ8OYbhO',
+      );
+
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Test Login failed: ${e.toString()}';
+        });
+      }
+    }
+  }
+
   void _showForgotPasswordDialog() {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -284,6 +318,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final l10n = AppLocalizations.of(context);
+    final envProvider = Provider.of<EnvironmentProvider>(context);
+    final isTestEnv = envProvider.isTest;
 
     return Scaffold(
       body: Stack(
@@ -420,17 +456,25 @@ class _LoginScreenState extends State<LoginScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    l10n.get('password'),
-                                    style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  TextButton(
-                                    onPressed: _showForgotPasswordDialog,
-                                    style: TextButton.styleFrom(
-                                      visualDensity: VisualDensity.compact,
-                                      padding: EdgeInsets.zero,
+                                  Flexible(
+                                    child: Text(
+                                      l10n.get('password'),
+                                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    child: Text(l10n.get('forgot_password')),
+                                  ),
+                                  Flexible(
+                                    child: TextButton(
+                                      onPressed: _showForgotPasswordDialog,
+                                      style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                      child: Text(
+                                        l10n.get('forgot_password'),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -460,6 +504,42 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ) 
                                     : Text(l10n.get('sign_in_button'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
+                              if (isTestEnv) ...[
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(child: Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5))),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text(
+                                        'Testing Mode',
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.onSurface.withValues(alpha: 0.4),
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 1.0,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(child: Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5))),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                OutlinedButton.icon(
+                                  onPressed: _isLoading ? null : _submitTestLogin,
+                                  icon: const Icon(Icons.science_outlined),
+                                  label: const Text(
+                                    'Bypass Sign In',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    side: BorderSide(color: colorScheme.secondary, width: 1.5),
+                                    foregroundColor: colorScheme.secondary,
+                                    backgroundColor: colorScheme.secondaryContainer.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -467,8 +547,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       const SizedBox(height: 16),
                       
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             l10n.get('no_account'),
