@@ -202,6 +202,7 @@ class _ManagerHomeState extends State<ManagerHome> {
                 _buildFilterChip(l10n.get('working'), 'in_progress', Icons.construction_rounded),
                 _buildFilterChip(l10n.get('on_hold'), 'on_hold', Icons.pause_circle_outline_rounded),
                 _buildFilterChip(l10n.get('resolved'), 'closed', Icons.check_circle_outline_rounded),
+                _buildFilterChip(l10n.get('archived'), 'archived', Icons.archive_outlined),
               ],
             ),
           ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/report.dart';
 import '../../services/report_service.dart';
 import '../../services/audit_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/user_service.dart';
 import '../widgets/responsive_center.dart';
 import '../widgets/image_gallery.dart';
 import '../../l10n/app_localizations.dart';
@@ -156,9 +158,39 @@ class TaskDetailScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _launchEmail(String email) async {
+    final uri = Uri(scheme: 'mailto', path: email);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _launchPhone(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   Widget _buildContactSection(BuildContext context) {
+    if (report.reporterEmail.isNotEmpty) {
+      return _buildContactSectionContent(context, report.reporterEmail);
+    }
+
+    final userService = Provider.of<UserService>(context, listen: false);
+    return FutureBuilder(
+      future: userService.getUserProfile(report.reporterId),
+      builder: (context, snapshot) {
+        final email = snapshot.data?.email ?? '';
+        return _buildContactSectionContent(context, email);
+      },
+    );
+  }
+
+  Widget _buildContactSectionContent(BuildContext context, String email) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       width: double.infinity,
@@ -176,7 +208,7 @@ class TaskDetailScreen extends StatelessWidget {
               Icon(Icons.contact_support_outlined, size: 18, color: colorScheme.onPrimaryContainer),
               const SizedBox(width: 8),
               Text(
-                AppLocalizations.of(context).get('reported_by'),
+                l10n.get('reported_by'),
                 style: TextStyle(
                   color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w900,
@@ -204,11 +236,38 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               ),
               IconButton.filledTonal(
-                onPressed: () {}, // Could implement call functionality
+                onPressed: () => _launchPhone(report.reporterPhone),
                 icon: const Icon(Icons.phone_rounded, size: 18),
+                tooltip: report.reporterPhone,
               ),
             ],
           ),
+          if (email.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 56),
+                      Expanded(
+                        child: Text(
+                          email,
+                          style: textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton.filledTonal(
+                  onPressed: () => _launchEmail(email),
+                  icon: const Icon(Icons.email_rounded, size: 18),
+                  tooltip: l10n.get('send_email'),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

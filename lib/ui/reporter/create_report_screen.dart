@@ -198,6 +198,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           imageUrls: imageUrls,
           reporterName: _nameController.text.trim(),
           reporterPhone: _phoneController.text.trim(),
+          reporterEmail: profile.email,
           location: _selectedLocation ?? '',
           status: 'open',
           reporterId: userId,

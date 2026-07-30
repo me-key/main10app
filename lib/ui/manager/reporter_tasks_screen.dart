@@ -230,6 +230,7 @@ class _StatusSmallChip extends StatelessWidget {
       case 'assigned': color = Colors.purple; break;
       case 'in_progress': color = Colors.orange; break;
       case 'closed': color = Colors.green; break;
+      case 'archived': color = const Color(0xFF64748B); break;
       default: color = Colors.grey;
     }
     return Container(

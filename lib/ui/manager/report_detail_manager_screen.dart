@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/report.dart';
 import '../../models/user_profile.dart';
 import '../../services/report_service.dart';
@@ -215,11 +216,7 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
               
               const SizedBox(height: 24),
               
-              _buildInfoSection(context, AppLocalizations.of(context).get('reporter_details'), [
-                _buildInfoItem(context, AppLocalizations.of(context).get('name_label'), widget.report.reporterName),
-                const SizedBox(height: 16),
-                _buildInfoItem(context, AppLocalizations.of(context).get('contact_label'), widget.report.reporterPhone),
-              ]),
+              _buildReporterSection(context),
               
               const SizedBox(height: 48),
               
@@ -296,6 +293,72 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
         Text(value, style: textTheme.bodyLarge?.copyWith(color: isWarning ? Colors.orange : null)),
       ],
     );
+  }
+
+  Future<void> _launchEmail(String email) async {
+    final uri = Uri(scheme: 'mailto', path: email);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _launchPhone(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Widget _buildReporterSection(BuildContext context) {
+    final userService = Provider.of<UserService>(context, listen: false);
+
+    if (widget.report.reporterEmail.isNotEmpty) {
+      return _buildReporterSectionContent(context, widget.report.reporterEmail);
+    }
+
+    return FutureBuilder<UserProfile?>(
+      future: userService.getUserProfile(widget.report.reporterId),
+      builder: (context, snapshot) {
+        final email = snapshot.data?.email ?? '';
+        return _buildReporterSectionContent(context, email);
+      },
+    );
+  }
+
+  Widget _buildReporterSectionContent(BuildContext context, String email) {
+    final l10n = AppLocalizations.of(context);
+    return _buildInfoSection(context, l10n.get('reporter_details'), [
+      _buildInfoItem(context, l10n.get('name_label'), widget.report.reporterName),
+      const SizedBox(height: 16),
+      Row(
+        children: [
+          Expanded(
+            child: _buildInfoItem(context, l10n.get('contact_label'), widget.report.reporterPhone),
+          ),
+          if (widget.report.reporterPhone.isNotEmpty)
+            IconButton.filledTonal(
+              onPressed: () => _launchPhone(widget.report.reporterPhone),
+              icon: const Icon(Icons.phone_rounded, size: 18),
+              tooltip: widget.report.reporterPhone,
+            ),
+        ],
+      ),
+      if (email.isNotEmpty) ...[
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildInfoItem(context, l10n.get('email'), email),
+            ),
+            IconButton.filledTonal(
+              onPressed: () => _launchEmail(email),
+              icon: const Icon(Icons.email_rounded, size: 18),
+              tooltip: l10n.get('send_email'),
+            ),
+          ],
+        ),
+      ],
+    ]);
   }
 
   Widget _buildManagementActions(BuildContext context) {

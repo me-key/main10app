@@ -80,16 +80,21 @@ class ReportService {
   Stream<List<Report>> getReportsForReporter(
     String uid,
     String organizationId, {
+    String? status,
     int limit = 50,
   }) {
     if (_firestore == null) return const Stream.empty();
 
-    return _firestore!
+    Query query = _firestore!
         .collection(_collection)
         .where('organizationId', isEqualTo: organizationId)
-        .where('reporterId', isEqualTo: uid)
-        .where('status', isNotEqualTo: 'archived')
-        .orderBy('createdAt', descending: true)
+        .where('reporterId', isEqualTo: uid);
+
+    if (status != null && status != 'all') {
+      query = query.where('status', isEqualTo: status);
+    }
+
+    return query
         .limit(limit)
         .snapshots()
         .handleError((error) {

@@ -8,6 +8,7 @@ class Report {
   final List<String> imageUrls;
   final String reporterName;
   final String reporterPhone;
+  final String reporterEmail;
   final String location;
   final String status; // 'open', 'assigned', 'in_progress', 'closed', 'archived'
   final String reporterId;
@@ -27,6 +28,7 @@ class Report {
     this.imageUrls = const [],
     required this.reporterName,
     required this.reporterPhone,
+    this.reporterEmail = '',
     required this.location,
     required this.status,
     required this.reporterId,
@@ -49,6 +51,7 @@ class Report {
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       reporterName: data['reporterName'] ?? '',
       reporterPhone: data['reporterPhone'] ?? '',
+      reporterEmail: data['reporterEmail'] ?? '',
       location: data['location'] ?? '',
       status: data['status'] ?? 'open',
       reporterId: data['reporterId'] ?? '',
@@ -70,6 +73,7 @@ class Report {
       'imageUrls': imageUrls,
       'reporterName': reporterName,
       'reporterPhone': reporterPhone,
+      'reporterEmail': reporterEmail,
       'location': location,
       'status': status,
       'reporterId': reporterId,
@@ -90,6 +94,7 @@ class Report {
     List<String>? imageUrls,
     String? reporterName,
     String? reporterPhone,
+    String? reporterEmail,
     String? location,
     String? status,
     String? assignedTo,
@@ -106,6 +111,7 @@ class Report {
       imageUrls: imageUrls ?? this.imageUrls,
       reporterName: reporterName ?? this.reporterName,
       reporterPhone: reporterPhone ?? this.reporterPhone,
+      reporterEmail: reporterEmail ?? this.reporterEmail,
       location: location ?? this.location,
       status: status ?? this.status,
       reporterId: reporterId, // Should not change

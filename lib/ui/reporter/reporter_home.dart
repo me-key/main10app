@@ -20,6 +20,7 @@ class ReporterHome extends StatefulWidget {
 
 class _ReporterHomeState extends State<ReporterHome> {
   String? _organizationId;
+  String _filterStatus = 'all';
   bool _isLoading = true;
 
   @override
@@ -113,11 +114,30 @@ class _ReporterHomeState extends State<ReporterHome> {
           ),
           const SizedBox(width: 16),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Container(
+            height: 64,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _buildFilterChip(l10n.get('all_tasks'), 'all', Icons.dashboard_rounded),
+                _buildFilterChip(l10n.get('open'), 'open', Icons.error_outline_rounded),
+                _buildFilterChip(l10n.get('assigned'), 'assigned', Icons.assignment_ind_rounded),
+                _buildFilterChip(l10n.get('working'), 'in_progress', Icons.construction_rounded),
+                _buildFilterChip(l10n.get('resolved'), 'closed', Icons.check_circle_outline_rounded),
+                _buildFilterChip(l10n.get('archived'), 'archived', Icons.archive_outlined),
+              ],
+            ),
+          ),
+        ),
       ),
       body: ResponsiveCenter(
         maxWidth: 900,
         child: StreamBuilder<List<Report>>(
-          stream: reportService.getReportsForReporter(user.uid, _organizationId!),
+          stream: reportService.getReportsForReporter(user.uid, _organizationId!, status: _filterStatus),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -185,6 +205,40 @@ class _ReporterHomeState extends State<ReporterHome> {
         },
         icon: const Icon(Icons.add),
         label: Text(l10n.get('new_report')),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value, IconData icon) {
+    final isSelected = _filterStatus == value;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: FilterChip(
+        avatar: Icon(icon, size: 16, color: isSelected ? Colors.white : colorScheme.onSurface.withValues(alpha: 0.5)),
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (_filterStatus != value) {
+            setState(() {
+              _filterStatus = value;
+            });
+          }
+        },
+        showCheckmark: false,
+        backgroundColor: Colors.transparent,
+        selectedColor: colorScheme.primary,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : colorScheme.onSurface,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isSelected ? colorScheme.primary : colorScheme.outlineVariant,
+          ),
+        ),
       ),
     );
   }
