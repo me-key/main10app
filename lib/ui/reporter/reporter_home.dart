@@ -281,6 +281,21 @@ class _ReportCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
+                            Icon(Icons.category_rounded, size: 14, color: colorScheme.onSurface.withValues(alpha: 0.4)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                report.category,
+                                style: textTheme.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
                             Icon(Icons.location_on_rounded, size: 14, color: colorScheme.onSurface.withValues(alpha: 0.4)),
                             const SizedBox(width: 4),
                             Expanded(

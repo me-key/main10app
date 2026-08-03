@@ -195,6 +195,7 @@ class _TaskMiniCard extends StatelessWidget {
                   children: [
                     Text(report.title, style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
+                    Text("${l10n.get('category')}: ${report.category}", style: textTheme.bodySmall),
                     Text("${l10n.get('location')}: ${report.location}", style: textTheme.bodySmall),
                   ],
                 ),

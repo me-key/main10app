@@ -9,6 +9,8 @@ import 'package:main10app/models/report.dart';
 import 'package:main10app/models/user_profile.dart';
 import 'package:main10app/models/location.dart';
 import 'package:main10app/services/location_service.dart';
+import 'package:main10app/models/category.dart';
+import 'package:main10app/services/category_service.dart';
 import 'package:main10app/services/audit_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -79,6 +81,20 @@ class MockLocationService extends LocationService {
   }
 }
 
+class MockCategoryService extends CategoryService {
+  MockCategoryService() : super(firestore: null);
+
+  @override
+  Stream<List<Category>> getCategories(String organizationId) {
+    return Stream.value([
+      Category(id: '1', name: 'Other', createdAt: DateTime.now(), organizationId: 'test_org_id', isDefault: true),
+    ]);
+  }
+
+  @override
+  Future<void> ensureDefaultCategory(String organizationId) async {}
+}
+
 void main() {
   testWidgets('Submitting valid report calls createReport and pops screen', (WidgetTester tester) async {
     // Setup
@@ -93,6 +109,7 @@ void main() {
           Provider<AuthService>(create: (_) => mockAuthService),
           Provider<StorageService>(create: (_) => MockStorageService()),
           Provider<LocationService>(create: (_) => MockLocationService()),
+          Provider<CategoryService>(create: (_) => MockCategoryService()),
           Provider<AuditService>(create: (_) => mockAuditService),
         ],
         child: MaterialApp(
@@ -144,8 +161,12 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), 'Test Title'); 
     await tester.enterText(find.byType(TextFormField).at(1), 'Test Desc'); 
     
-    // Select Location from Dropdown
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    // Select Location from Dropdown (the second dropdown; the first is Category,
+    // which already defaults to "Other" via MockCategoryService).
+    final locationDropdownFinder = find.byType(DropdownButtonFormField<String>).at(1);
+    await tester.ensureVisible(locationDropdownFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(locationDropdownFinder);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Test Location').last);
     await tester.pumpAndSettle();

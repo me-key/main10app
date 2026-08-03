@@ -70,6 +70,9 @@ class TaskDetailScreen extends StatelessWidget {
               _buildHeader(context),
               const SizedBox(height: 32),
               
+              __buildInfoCard(context, AppLocalizations.of(context).get('category'), report.category, Icons.category_outlined),
+              const SizedBox(height: 16),
+
               __buildInfoCard(context, AppLocalizations.of(context).get('problem_desc'), report.description, Icons.description_outlined),
               const SizedBox(height: 16),
               

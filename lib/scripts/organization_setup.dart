@@ -31,6 +31,16 @@ class OrganizationSetup {
         'isActive': true,
       });
 
+      // Seed the protected default "Other" category so every org has a fallback
+      // category available even before a manager opens "Manage Categories".
+      await FirebaseFirestore.instance.collection('categories').add({
+        'name': 'Other',
+        'organizationId': orgRef.id,
+        'createdAt': FieldValue.serverTimestamp(),
+        'sortOrder': -1,
+        'isDefault': true,
+      });
+
       print("✅ Organization created with ID: ${orgRef.id}");
       return orgRef.id;
     } catch (e) {

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Report {
   final String id;
+  final String category;
   final String title;
   final String description;
   final String? photoUrl;
@@ -22,6 +23,7 @@ class Report {
 
   Report({
     required this.id,
+    required this.category,
     required this.title,
     required this.description,
     this.photoUrl,
@@ -45,6 +47,7 @@ class Report {
     final data = doc.data() as Map<String, dynamic>;
     return Report(
       id: doc.id,
+      category: data['category'] ?? 'Other',
       title: data['title'] ?? '',
       description: data['description'] ?? '',
       photoUrl: data['photoUrl'],
@@ -67,6 +70,7 @@ class Report {
 
   Map<String, dynamic> toMap() {
     return {
+      'category': category,
       'title': title,
       'description': description,
       'photoUrl': photoUrl,
@@ -88,6 +92,7 @@ class Report {
   }
 
   Report copyWith({
+    String? category,
     String? title,
     String? description,
     String? photoUrl,
@@ -105,6 +110,7 @@ class Report {
   }) {
     return Report(
       id: id,
+      category: category ?? this.category,
       title: title ?? this.title,
       description: description ?? this.description,
       photoUrl: photoUrl ?? this.photoUrl,

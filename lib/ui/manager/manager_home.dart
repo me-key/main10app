@@ -9,6 +9,7 @@ import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/locale_provider.dart';
 import 'manage_locations_screen.dart';
+import 'manage_categories_screen.dart';
 import '../../services/user_service.dart';
 import '../../models/user_profile.dart';
 import 'maintainer_tasks_screen.dart';
@@ -117,6 +118,12 @@ class _ManagerHomeState extends State<ManagerHome> {
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageLocationsScreen())),
             icon: const Icon(Icons.location_on_rounded, size: 20),
             tooltip: l10n.get('manage_locations'),
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageCategoriesScreen())),
+            icon: const Icon(Icons.category_rounded, size: 20),
+            tooltip: l10n.get('manage_categories'),
           ),
           const SizedBox(width: 8),
           PopupMenuButton<String>(

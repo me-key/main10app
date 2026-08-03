@@ -72,18 +72,22 @@ service cloud.firestore {
                     && request.resource.data.organizationId == getUserOrg();
       
       // Read: must be in same organization and either own report or have appropriate role
-      allow read: if request.auth != null 
-                  && resource.data.organizationId == getUserOrg()
-                  && (resource.data.reporterId == request.auth.uid 
-                      || hasRole('maintainer') 
-                      || hasRole('manager') 
-                      || hasRole('admin'));
-      
+      // (Super Admins can read reports in any organization)
+      allow read: if request.auth != null
+                  && (hasRole('super_admin') ||
+                      (resource.data.organizationId == getUserOrg()
+                       && (resource.data.reporterId == request.auth.uid
+                           || hasRole('maintainer')
+                           || hasRole('manager')
+                           || hasRole('admin'))));
+
       // Update: must be in same organization, cannot change organizationId, and have appropriate role
-      allow update: if request.auth != null 
-                    && resource.data.organizationId == getUserOrg()
+      // (Super Admins can update reports in any organization)
+      allow update: if request.auth != null
                     && request.resource.data.organizationId == resource.data.organizationId
-                    && (hasRole('maintainer') || hasRole('manager') || hasRole('admin'));
+                    && (hasRole('super_admin') ||
+                        (resource.data.organizationId == getUserOrg()
+                         && (hasRole('maintainer') || hasRole('manager') || hasRole('admin'))));
       
       // Delete: only admins in same organization
       allow delete: if hasRole('admin') && resource.data.organizationId == getUserOrg();
@@ -103,14 +107,33 @@ service cloud.firestore {
     match /locations/{locationId} {
       // Users can read locations in their organization
       allow read: if request.auth != null && resource.data.organizationId == getUserOrg();
-      
+
       // Managers and Admins can create locations in their organization
-      allow create: if (hasRole('manager') || hasRole('admin')) 
+      allow create: if (hasRole('manager') || hasRole('admin'))
                     && request.resource.data.organizationId == getUserOrg();
-      
+
       // Managers and Admins can update/delete locations in their organization
-      allow update, delete: if (hasRole('manager') || hasRole('admin')) 
+      allow update, delete: if (hasRole('manager') || hasRole('admin'))
                             && resource.data.organizationId == getUserOrg();
+    }
+
+    match /categories/{categoryId} {
+      // Users can read categories in their organization
+      allow read: if request.auth != null && resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can create categories in their organization
+      allow create: if (hasRole('manager') || hasRole('admin'))
+                    && request.resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can update categories in their organization
+      allow update: if (hasRole('manager') || hasRole('admin'))
+                    && resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can delete categories in their organization,
+      // except the protected default ("Other") category
+      allow delete: if (hasRole('manager') || hasRole('admin'))
+                    && resource.data.organizationId == getUserOrg()
+                    && resource.data.isDefault != true;
     }
 
     // Global app configuration (e.g., trial settings)

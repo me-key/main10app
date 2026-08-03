@@ -6,6 +6,7 @@ void main() {
     final now = DateTime.now();
     final testReport = Report(
       id: 'test_id',
+      category: 'Other',
       title: 'Test Title',
       description: 'Test Description',
       reporterName: 'Test Reporter',

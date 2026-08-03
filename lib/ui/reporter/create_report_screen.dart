@@ -9,8 +9,10 @@ import '../../services/auth_service.dart';
 import '../../services/report_service.dart';
 // import '../../services/storage_service.dart';
 import '../../services/location_service.dart';
+import '../../services/category_service.dart';
 import '../../services/audit_service.dart';
 import '../../models/location.dart';
+import '../../models/category.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -28,6 +30,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   String? _selectedLocation;
+  String? _selectedCategory = 'Other';
   DateTime _reportDateTime = DateTime.now();
   
   // final List<XFile> _selectedImages = [];
@@ -55,6 +58,10 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
             _organizationId = profile.organizationId;
             _isLoadingOrg = false;
           });
+        }
+        if (mounted) {
+          final categoryService = Provider.of<CategoryService>(context, listen: false);
+          await categoryService.ensureDefaultCategory(profile.organizationId);
         }
       }
     }
@@ -193,6 +200,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
 
         final report = Report(
           id: '',
+          category: _selectedCategory ?? 'Other',
           title: _titleController.text.trim(),
           description: _descController.text.trim(),
           imageUrls: imageUrls,
@@ -284,6 +292,27 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                   context,
                   AppLocalizations.of(context).get('report_details_cap'),
                   [
+                    _buildLabel(AppLocalizations.of(context).get('category')),
+                    StreamBuilder<List<Category>>(
+                      stream: Provider.of<CategoryService>(context, listen: false).getCategories(_organizationId!),
+                      builder: (context, snapshot) {
+                        final categories = snapshot.data ?? [];
+                        return DropdownButtonFormField<String>(
+                          value: _selectedCategory,
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context).get('select_category_hint'),
+                            prefixIcon: const Icon(Icons.category_rounded, size: 20),
+                          ),
+                          items: categories.map((cat) => DropdownMenuItem(
+                            value: cat.name,
+                            child: Text(cat.name),
+                          )).toList(),
+                          onChanged: (value) => setState(() => _selectedCategory = value),
+                          validator: (v) => v == null || v.isEmpty ? AppLocalizations.of(context).get('required') : null,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
                     _buildLabel(AppLocalizations.of(context).get('issue_title')),
                     TextFormField(
                       controller: _titleController,
