@@ -11,6 +11,7 @@ class Report {
   final String reporterPhone;
   final String reporterEmail;
   final String location;
+  final bool authorizeEntryWithoutPresence;
   final String status; // 'open', 'assigned', 'in_progress', 'closed', 'archived'
   final String reporterId;
   final String? assignedTo;
@@ -32,6 +33,7 @@ class Report {
     required this.reporterPhone,
     this.reporterEmail = '',
     required this.location,
+    required this.authorizeEntryWithoutPresence,
     required this.status,
     required this.reporterId,
     this.assignedTo,
@@ -56,6 +58,7 @@ class Report {
       reporterPhone: data['reporterPhone'] ?? '',
       reporterEmail: data['reporterEmail'] ?? '',
       location: data['location'] ?? '',
+      authorizeEntryWithoutPresence: data['authorizeEntryWithoutPresence'] ?? false,
       status: data['status'] ?? 'open',
       reporterId: data['reporterId'] ?? '',
       assignedTo: data['assignedTo'],
@@ -79,6 +82,7 @@ class Report {
       'reporterPhone': reporterPhone,
       'reporterEmail': reporterEmail,
       'location': location,
+      'authorizeEntryWithoutPresence': authorizeEntryWithoutPresence,
       'status': status,
       'reporterId': reporterId,
       'assignedTo': assignedTo,
@@ -101,6 +105,7 @@ class Report {
     String? reporterPhone,
     String? reporterEmail,
     String? location,
+    bool? authorizeEntryWithoutPresence,
     String? status,
     String? assignedTo,
     DateTime? updatedAt,
@@ -119,6 +124,7 @@ class Report {
       reporterPhone: reporterPhone ?? this.reporterPhone,
       reporterEmail: reporterEmail ?? this.reporterEmail,
       location: location ?? this.location,
+      authorizeEntryWithoutPresence: authorizeEntryWithoutPresence ?? this.authorizeEntryWithoutPresence,
       status: status ?? this.status,
       reporterId: reporterId, // Should not change
       assignedTo: assignedTo ?? this.assignedTo,

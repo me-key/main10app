@@ -311,6 +311,14 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
     }
   }
 
+  Future<void> _launchWhatsApp(String phone) async {
+    final digits = phone.replaceAll(RegExp(r'[^\d]'), '');
+    final uri = Uri.parse('https://wa.me/$digits');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   Widget _buildReporterSection(BuildContext context) {
     final userService = Provider.of<UserService>(context, listen: false);
 
@@ -332,17 +340,31 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
     return _buildInfoSection(context, l10n.get('reporter_details'), [
       _buildInfoItem(context, l10n.get('name_label'), widget.report.reporterName),
       const SizedBox(height: 16),
+      _buildInfoItem(
+        context,
+        l10n.get('authorize_entry_label'),
+        widget.report.authorizeEntryWithoutPresence ? l10n.get('yes') : l10n.get('no'),
+        isWarning: !widget.report.authorizeEntryWithoutPresence,
+      ),
+      const SizedBox(height: 16),
       Row(
         children: [
           Expanded(
             child: _buildInfoItem(context, l10n.get('contact_label'), widget.report.reporterPhone),
           ),
-          if (widget.report.reporterPhone.isNotEmpty)
+          if (widget.report.reporterPhone.isNotEmpty) ...[
             IconButton.filledTonal(
               onPressed: () => _launchPhone(widget.report.reporterPhone),
               icon: const Icon(Icons.phone_rounded, size: 18),
               tooltip: widget.report.reporterPhone,
             ),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              onPressed: () => _launchWhatsApp(widget.report.reporterPhone),
+              icon: const Icon(Icons.chat_rounded, size: 18),
+              tooltip: l10n.get('send_whatsapp'),
+            ),
+          ],
         ],
       ),
       if (email.isNotEmpty) ...[

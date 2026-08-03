@@ -171,9 +171,16 @@ void main() {
     await tester.tap(find.text('Test Location').last);
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).at(2), 'Test Name'); 
-    await tester.enterText(find.byType(TextFormField).at(3), '123456'); 
+    await tester.enterText(find.byType(TextFormField).at(2), 'Test Name');
+    await tester.enterText(find.byType(TextFormField).at(3), '123456');
     await tester.pump();
+
+    // Answer the required "authorize entry without presence" question
+    final yesSegmentFinder = find.text('Yes');
+    await tester.ensureVisible(yesSegmentFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(yesSegmentFinder);
+    await tester.pumpAndSettle();
 
     // Ensure button is visible
     final buttonFinder = find.text("Submit Maintenance Report");

@@ -175,6 +175,14 @@ class TaskDetailScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _launchWhatsApp(String phone) async {
+    final digits = phone.replaceAll(RegExp(r'[^\d]'), '');
+    final uri = Uri.parse('https://wa.me/$digits');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
   Widget _buildContactSection(BuildContext context) {
     if (report.reporterEmail.isNotEmpty) {
       return _buildContactSectionContent(context, report.reporterEmail);
@@ -243,6 +251,12 @@ class TaskDetailScreen extends StatelessWidget {
                 icon: const Icon(Icons.phone_rounded, size: 18),
                 tooltip: report.reporterPhone,
               ),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                onPressed: () => _launchWhatsApp(report.reporterPhone),
+                icon: const Icon(Icons.chat_rounded, size: 18),
+                tooltip: l10n.get('send_whatsapp'),
+              ),
             ],
           ),
           if (email.isNotEmpty) ...[
@@ -271,6 +285,31 @@ class TaskDetailScreen extends StatelessWidget {
               ],
             ),
           ],
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: (report.authorizeEntryWithoutPresence ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  report.authorizeEntryWithoutPresence ? Icons.lock_open_rounded : Icons.lock_outline_rounded,
+                  size: 18,
+                  color: report.authorizeEntryWithoutPresence ? Colors.green : Colors.orange,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "${l10n.get('authorize_entry_label')}: ${report.authorizeEntryWithoutPresence ? l10n.get('yes') : l10n.get('no')}",
+                    style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

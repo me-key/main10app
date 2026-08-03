@@ -12,6 +12,7 @@ void main() {
       reporterName: 'Test Reporter',
       reporterPhone: '123456789',
       location: 'Test Location',
+      authorizeEntryWithoutPresence: false,
       status: 'in_progress',
       reporterId: 'reporter_id',
       createdAt: now,

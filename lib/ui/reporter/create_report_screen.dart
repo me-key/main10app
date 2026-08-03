@@ -31,6 +31,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   final _phoneController = TextEditingController();
   String? _selectedLocation;
   String? _selectedCategory = 'Other';
+  bool? _authorizeEntry;
   DateTime _reportDateTime = DateTime.now();
   
   // final List<XFile> _selectedImages = [];
@@ -208,6 +209,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           reporterPhone: _phoneController.text.trim(),
           reporterEmail: profile.email,
           location: _selectedLocation ?? '',
+          authorizeEntryWithoutPresence: _authorizeEntry ?? false,
           status: 'open',
           reporterId: userId,
           createdAt: DateTime.now(),
@@ -413,9 +415,42 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                       keyboardType: TextInputType.phone,
                       validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
+                    const SizedBox(height: 24),
+                    _buildLabel(AppLocalizations.of(context).get('authorize_entry_question')),
+                    FormField<bool>(
+                      initialValue: _authorizeEntry,
+                      validator: (v) => v == null ? AppLocalizations.of(context).get('required') : null,
+                      builder: (field) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SegmentedButton<bool>(
+                              segments: [
+                                ButtonSegment(value: true, label: Text(AppLocalizations.of(context).get('yes'))),
+                                ButtonSegment(value: false, label: Text(AppLocalizations.of(context).get('no'))),
+                              ],
+                              selected: _authorizeEntry == null ? {} : {_authorizeEntry!},
+                              emptySelectionAllowed: true,
+                              onSelectionChanged: (selected) {
+                                setState(() => _authorizeEntry = selected.isEmpty ? null : selected.first);
+                                field.didChange(_authorizeEntry);
+                              },
+                            ),
+                            if (field.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  field.errorText!,
+                                  style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 48),
                 
                 FilledButton(
