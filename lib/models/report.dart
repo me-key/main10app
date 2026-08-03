@@ -10,6 +10,7 @@ class Report {
   final String reporterName;
   final String reporterPhone;
   final String reporterEmail;
+  final String area;
   final String location;
   final bool authorizeEntryWithoutPresence;
   final String status; // 'open', 'assigned', 'in_progress', 'closed', 'archived'
@@ -32,6 +33,7 @@ class Report {
     required this.reporterName,
     required this.reporterPhone,
     this.reporterEmail = '',
+    required this.area,
     required this.location,
     required this.authorizeEntryWithoutPresence,
     required this.status,
@@ -57,6 +59,7 @@ class Report {
       reporterName: data['reporterName'] ?? '',
       reporterPhone: data['reporterPhone'] ?? '',
       reporterEmail: data['reporterEmail'] ?? '',
+      area: data['area'] ?? '',
       location: data['location'] ?? '',
       authorizeEntryWithoutPresence: data['authorizeEntryWithoutPresence'] ?? false,
       status: data['status'] ?? 'open',
@@ -81,6 +84,7 @@ class Report {
       'reporterName': reporterName,
       'reporterPhone': reporterPhone,
       'reporterEmail': reporterEmail,
+      'area': area,
       'location': location,
       'authorizeEntryWithoutPresence': authorizeEntryWithoutPresence,
       'status': status,
@@ -104,6 +108,7 @@ class Report {
     String? reporterName,
     String? reporterPhone,
     String? reporterEmail,
+    String? area,
     String? location,
     bool? authorizeEntryWithoutPresence,
     String? status,
@@ -123,6 +128,7 @@ class Report {
       reporterName: reporterName ?? this.reporterName,
       reporterPhone: reporterPhone ?? this.reporterPhone,
       reporterEmail: reporterEmail ?? this.reporterEmail,
+      area: area ?? this.area,
       location: location ?? this.location,
       authorizeEntryWithoutPresence: authorizeEntryWithoutPresence ?? this.authorizeEntryWithoutPresence,
       status: status ?? this.status,

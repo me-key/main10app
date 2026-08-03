@@ -90,6 +90,7 @@ void main() {
     final report = Report(
       id: '1',
       category: 'Plumbing',
+      area: 'Building A',
       title: 'Leaking Faucet',
       description: 'The faucet in the kitchen is leaking.',
       reporterName: 'John Doe',
@@ -165,6 +166,7 @@ void main() {
     final report = Report(
       id: '2',
       category: 'Electricity',
+      area: 'Building B',
       title: 'Broken Light',
       description: 'The light in the hallway is broken.',
       reporterName: 'Jane Smith',

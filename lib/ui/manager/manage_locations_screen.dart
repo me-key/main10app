@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/location.dart';
+import '../../models/area.dart';
 import '../../services/location_service.dart';
+import '../../services/area_service.dart';
 import '../../services/auth_service.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
@@ -19,6 +21,11 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
   String? _organizationId;
   bool _isLoading = true;
 
+  StreamSubscription<List<Area>>? _areasSub;
+  List<Area> _areas = [];
+  bool _areasLoading = true;
+  String? _selectedAreaId;
+
   StreamSubscription<List<Location>>? _locationsSub;
   List<Location> _locations = [];
   bool _locationsLoading = true;
@@ -32,6 +39,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
 
   @override
   void dispose() {
+    _areasSub?.cancel();
     _locationsSub?.cancel();
     _nameController.dispose();
     super.dispose();
@@ -47,16 +55,38 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
           _organizationId = profile.organizationId;
           _isLoading = false;
         });
-        _subscribeToLocations();
+
+        final areaService = Provider.of<AreaService>(context, listen: false);
+        final locationService = Provider.of<LocationService>(context, listen: false);
+        final defaultAreaId = await areaService.ensureDefaultArea(_organizationId!);
+        await locationService.backfillLocationsMissingArea(_organizationId!, defaultAreaId);
+        _subscribeToAreas();
       }
     }
+  }
+
+  void _subscribeToAreas() {
+    final areaService = Provider.of<AreaService>(context, listen: false);
+    _areasSub = areaService.getAreas(_organizationId!).listen((data) {
+      if (!mounted) return;
+      setState(() {
+        _areas = data;
+        _areasLoading = false;
+        _selectedAreaId ??= data.isNotEmpty ? data.first.id : null;
+      });
+      if (_selectedAreaId != null && _locationsSub == null) {
+        _subscribeToLocations();
+      }
+    });
   }
 
   // Locations are kept in local state (rather than a StreamBuilder) so drag-and-drop
   // reordering can update the UI immediately, ahead of the Firestore round-trip.
   void _subscribeToLocations() {
     final locationService = Provider.of<LocationService>(context, listen: false);
-    _locationsSub = locationService.getLocations(_organizationId!).listen(
+    _locationsSub?.cancel();
+    setState(() => _locationsLoading = true);
+    _locationsSub = locationService.getLocations(_organizationId!, areaId: _selectedAreaId).listen(
       (data) {
         if (!mounted) return;
         setState(() {
@@ -75,13 +105,19 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     );
   }
 
+  void _selectArea(String areaId) {
+    if (areaId == _selectedAreaId) return;
+    setState(() => _selectedAreaId = areaId);
+    _subscribeToLocations();
+  }
+
   Future<void> _addLocation() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty || _organizationId == null) return;
+    if (name.isEmpty || _organizationId == null || _selectedAreaId == null) return;
 
     final locationService = Provider.of<LocationService>(context, listen: false);
     try {
-      await locationService.addLocation(name, _organizationId!, sortOrder: _locations.length);
+      await locationService.addLocation(name, _organizationId!, _selectedAreaId!, sortOrder: _locations.length);
       _nameController.clear();
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
@@ -177,6 +213,34 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
     }
   }
 
+  Widget _buildAreaSelector(AppLocalizations l10n) {
+    if (_areasLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: LinearProgressIndicator(),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _areas.map((area) {
+            final isSelected = area.id == _selectedAreaId;
+            return Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: ChoiceChip(
+                label: Text(area.name),
+                selected: isSelected,
+                onSelected: (_) => _selectArea(area.id),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _organizationId == null) {
@@ -188,14 +252,14 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
 
     final l10n = AppLocalizations.of(context);
 
-    Widget body;
+    Widget listBody;
     if (_locationsError != null) {
       debugPrint("Firestore Error in ManageLocationsScreen: $_locationsError");
-      body = Center(child: Text("Error: $_locationsError"));
-    } else if (_locationsLoading) {
-      body = const Center(child: CircularProgressIndicator());
+      listBody = Center(child: Text("Error: $_locationsError"));
+    } else if (_areasLoading || _locationsLoading) {
+      listBody = const Center(child: CircularProgressIndicator());
     } else if (_locations.isEmpty) {
-      body = Center(
+      listBody = Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -212,7 +276,7 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
         ),
       );
     } else {
-      body = ReorderableListView.builder(
+      listBody = ReorderableListView.builder(
         padding: const EdgeInsets.all(16),
         buildDefaultDragHandles: false,
         itemCount: _locations.length,
@@ -244,10 +308,15 @@ class _ManageLocationsScreenState extends State<ManageLocationsScreen> {
       ),
       body: ResponsiveCenter(
         maxWidth: 800,
-        child: body,
+        child: Column(
+          children: [
+            _buildAreaSelector(l10n),
+            Expanded(child: listBody),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddDialog,
+        onPressed: _selectedAreaId == null ? null : _showAddDialog,
         child: const Icon(Icons.add),
       ),
     );

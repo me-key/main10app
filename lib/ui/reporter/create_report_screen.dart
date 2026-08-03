@@ -10,9 +10,11 @@ import '../../services/report_service.dart';
 // import '../../services/storage_service.dart';
 import '../../services/location_service.dart';
 import '../../services/category_service.dart';
+import '../../services/area_service.dart';
 import '../../services/audit_service.dart';
 import '../../models/location.dart';
 import '../../models/category.dart';
+import '../../models/area.dart';
 import '../widgets/responsive_center.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -29,6 +31,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
   final _descController = TextEditingController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  String? _selectedAreaId;
+  String? _selectedAreaName;
   String? _selectedLocation;
   String? _selectedCategory = 'Other';
   bool? _authorizeEntry;
@@ -63,6 +67,12 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
         if (mounted) {
           final categoryService = Provider.of<CategoryService>(context, listen: false);
           await categoryService.ensureDefaultCategory(profile.organizationId);
+        }
+        if (mounted) {
+          final areaService = Provider.of<AreaService>(context, listen: false);
+          final locationService = Provider.of<LocationService>(context, listen: false);
+          final defaultAreaId = await areaService.ensureDefaultArea(profile.organizationId);
+          await locationService.backfillLocationsMissingArea(profile.organizationId, defaultAreaId);
         }
       }
     }
@@ -208,6 +218,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
           reporterName: _nameController.text.trim(),
           reporterPhone: _phoneController.text.trim(),
           reporterEmail: profile.email,
+          area: _selectedAreaName ?? '',
           location: _selectedLocation ?? '',
           authorizeEntryWithoutPresence: _authorizeEntry ?? false,
           status: 'open',
@@ -337,9 +348,39 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                       validator: (v) => v!.isEmpty ? AppLocalizations.of(context).get('required') : null,
                     ),
                     const SizedBox(height: 24),
+                    _buildLabel(AppLocalizations.of(context).get('area')),
+                    StreamBuilder<List<Area>>(
+                      stream: Provider.of<AreaService>(context, listen: false).getAreas(_organizationId!),
+                      builder: (context, snapshot) {
+                        final areas = snapshot.data ?? [];
+                        return DropdownButtonFormField<String>(
+                          value: _selectedAreaId,
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(context).get('select_area_hint'),
+                            prefixIcon: const Icon(Icons.map_rounded, size: 20),
+                          ),
+                          items: areas.map((area) => DropdownMenuItem(
+                            value: area.id,
+                            child: Text(area.name),
+                          )).toList(),
+                          onChanged: (value) {
+                            final selected = areas.where((a) => a.id == value);
+                            setState(() {
+                              _selectedAreaId = value;
+                              _selectedAreaName = selected.isEmpty ? null : selected.first.name;
+                              _selectedLocation = null;
+                            });
+                          },
+                          validator: (v) => v == null || v.isEmpty ? AppLocalizations.of(context).get('required') : null,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
                     _buildLabel(AppLocalizations.of(context).get('specific_location')),
                     StreamBuilder<List<Location>>(
-                      stream: Provider.of<LocationService>(context, listen: false).getLocations(_organizationId!),
+                      stream: _selectedAreaId == null
+                          ? const Stream<List<Location>>.empty()
+                          : Provider.of<LocationService>(context, listen: false).getLocations(_organizationId!, areaId: _selectedAreaId),
                       builder: (context, snapshot) {
                         final locations = snapshot.data ?? [];
                         return DropdownButtonFormField<String>(
@@ -352,7 +393,7 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                             value: loc.name,
                             child: Text(loc.name),
                           )).toList(),
-                          onChanged: (value) => setState(() => _selectedLocation = value),
+                          onChanged: _selectedAreaId == null ? null : (value) => setState(() => _selectedLocation = value),
                           validator: (v) => v == null || v.isEmpty ? AppLocalizations.of(context).get('required') : null,
                         );
                       },

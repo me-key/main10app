@@ -1,34 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Location {
+class Area {
   final String id;
   final String name;
   final DateTime createdAt;
   final String organizationId;
   final int sortOrder;
-  // Id of the Area this location belongs to. Empty for locations that predate
-  // the Area feature and haven't been self-healed yet (see LocationService.
-  // backfillLocationsMissingArea).
-  final String areaId;
+  final bool isDefault;
 
-  Location({
+  Area({
     required this.id,
     required this.name,
     required this.createdAt,
     required this.organizationId,
     this.sortOrder = -1,
-    required this.areaId,
+    this.isDefault = false,
   });
 
-  factory Location.fromSnapshot(DocumentSnapshot doc) {
+  factory Area.fromSnapshot(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    return Location(
+    return Area(
       id: doc.id,
       name: data['name'] ?? '',
       createdAt: (data['createdAt'] as Timestamp? ?? Timestamp.now()).toDate(),
       organizationId: data['organizationId'] ?? '',
       sortOrder: data['sortOrder'] ?? -1,
-      areaId: data['areaId'] ?? '',
+      isDefault: data['isDefault'] ?? false,
     );
   }
 
@@ -38,7 +35,7 @@ class Location {
       'createdAt': Timestamp.fromDate(createdAt),
       'organizationId': organizationId,
       'sortOrder': sortOrder,
-      'areaId': areaId,
+      'isDefault': isDefault,
     };
   }
 }

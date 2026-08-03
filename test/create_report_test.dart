@@ -11,6 +11,8 @@ import 'package:main10app/models/location.dart';
 import 'package:main10app/services/location_service.dart';
 import 'package:main10app/models/category.dart';
 import 'package:main10app/services/category_service.dart';
+import 'package:main10app/models/area.dart';
+import 'package:main10app/services/area_service.dart';
 import 'package:main10app/services/audit_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -74,11 +76,28 @@ class MockLocationService extends LocationService {
   MockLocationService() : super(firestore: null);
 
   @override
-  Stream<List<Location>> getLocations(String organizationId) {
+  Stream<List<Location>> getLocations(String organizationId, {String? areaId}) {
     return Stream.value([
-      Location(id: '1', name: 'Test Location', createdAt: DateTime.now(), organizationId: 'test_org_id'),
+      Location(id: '1', name: 'Test Location', createdAt: DateTime.now(), organizationId: 'test_org_id', areaId: 'area1'),
     ]);
   }
+
+  @override
+  Future<void> backfillLocationsMissingArea(String organizationId, String defaultAreaId) async {}
+}
+
+class MockAreaService extends AreaService {
+  MockAreaService() : super(firestore: null);
+
+  @override
+  Stream<List<Area>> getAreas(String organizationId) {
+    return Stream.value([
+      Area(id: 'area1', name: 'Test Area', createdAt: DateTime.now(), organizationId: 'test_org_id', isDefault: true),
+    ]);
+  }
+
+  @override
+  Future<String> ensureDefaultArea(String organizationId) async => 'area1';
 }
 
 class MockCategoryService extends CategoryService {
@@ -110,6 +129,7 @@ void main() {
           Provider<StorageService>(create: (_) => MockStorageService()),
           Provider<LocationService>(create: (_) => MockLocationService()),
           Provider<CategoryService>(create: (_) => MockCategoryService()),
+          Provider<AreaService>(create: (_) => MockAreaService()),
           Provider<AuditService>(create: (_) => mockAuditService),
         ],
         child: MaterialApp(
@@ -161,9 +181,18 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(0), 'Test Title'); 
     await tester.enterText(find.byType(TextFormField).at(1), 'Test Desc'); 
     
-    // Select Location from Dropdown (the second dropdown; the first is Category,
-    // which already defaults to "Other" via MockCategoryService).
-    final locationDropdownFinder = find.byType(DropdownButtonFormField<String>).at(1);
+    // Select Area from Dropdown (index 1; index 0 is Category, which already
+    // defaults to "Other" via MockCategoryService).
+    final areaDropdownFinder = find.byType(DropdownButtonFormField<String>).at(1);
+    await tester.ensureVisible(areaDropdownFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(areaDropdownFinder);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Test Area').last);
+    await tester.pumpAndSettle();
+
+    // Select Location from Dropdown (index 2), now filtered to the selected area.
+    final locationDropdownFinder = find.byType(DropdownButtonFormField<String>).at(2);
     await tester.ensureVisible(locationDropdownFinder);
     await tester.pumpAndSettle();
     await tester.tap(locationDropdownFinder);

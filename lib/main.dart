@@ -10,6 +10,7 @@ import 'services/user_service.dart';
 import 'services/storage_service.dart';
 import 'services/location_service.dart';
 import 'services/category_service.dart';
+import 'services/area_service.dart';
 import 'services/audit_service.dart';
 import 'services/notification_service.dart';
 import 'services/version_service.dart';
@@ -58,6 +59,7 @@ void main() async {
         Provider<StorageService>(create: (_) => StorageService()),
         Provider<LocationService>(create: (_) => LocationService()),
         Provider<CategoryService>(create: (_) => CategoryService()),
+        Provider<AreaService>(create: (_) => AreaService()),
         Provider<AuditService>(create: (_) => AuditService()),
         Provider<NotificationService>(create: (_) => NotificationService()),
       ],

@@ -117,6 +117,25 @@ service cloud.firestore {
                             && resource.data.organizationId == getUserOrg();
     }
 
+    match /areas/{areaId} {
+      // Users can read areas in their organization
+      allow read: if request.auth != null && resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can create areas in their organization
+      allow create: if (hasRole('manager') || hasRole('admin'))
+                    && request.resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can update areas in their organization
+      allow update: if (hasRole('manager') || hasRole('admin'))
+                    && resource.data.organizationId == getUserOrg();
+
+      // Managers and Admins can delete areas in their organization,
+      // except the protected default ("Unassigned") area
+      allow delete: if (hasRole('manager') || hasRole('admin'))
+                    && resource.data.organizationId == getUserOrg()
+                    && resource.data.isDefault != true;
+    }
+
     match /categories/{categoryId} {
       // Users can read categories in their organization
       allow read: if request.auth != null && resource.data.organizationId == getUserOrg();

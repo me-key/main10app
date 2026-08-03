@@ -202,6 +202,8 @@ class _ReportDetailManagerScreenState extends State<ReportDetailManagerScreen> {
                 const SizedBox(height: 16),
                 _buildInfoItem(context, AppLocalizations.of(context).get('problem_desc'), widget.report.description),
                 const SizedBox(height: 16),
+                _buildInfoItem(context, AppLocalizations.of(context).get('area'), widget.report.area),
+                const SizedBox(height: 16),
                 _buildInfoItem(context, AppLocalizations.of(context).get('location'), widget.report.location),
                 const SizedBox(height: 16),
                 _buildInfoItem(context, AppLocalizations.of(context).get('incident_date'), widget.report.reportDateTime.toString().split(' ')[0]),

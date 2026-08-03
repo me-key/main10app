@@ -7,6 +7,7 @@ void main() {
     final testReport = Report(
       id: 'test_id',
       category: 'Other',
+      area: 'Unassigned',
       title: 'Test Title',
       description: 'Test Description',
       reporterName: 'Test Reporter',

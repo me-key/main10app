@@ -16,15 +16,18 @@ class LocationService {
     }
   }
 
-  // Get all locations in organization, ordered by manager-defined sortOrder
-  // (falling back to name for locations that predate manual ordering).
-  Stream<List<Location>> getLocations(String organizationId) {
+  // Get locations in organization (optionally scoped to a single area), ordered
+  // by manager-defined sortOrder (falling back to name for locations that
+  // predate manual ordering).
+  Stream<List<Location>> getLocations(String organizationId, {String? areaId}) {
     if (_firestore == null) return const Stream.empty();
-    return _firestore!
+    Query<Map<String, dynamic>> query = _firestore!
         .collection(_collection)
-        .where('organizationId', isEqualTo: organizationId)
-        .snapshots()
-        .map((snapshot) {
+        .where('organizationId', isEqualTo: organizationId);
+    if (areaId != null) {
+      query = query.where('areaId', isEqualTo: areaId);
+    }
+    return query.snapshots().map((snapshot) {
       final locations = snapshot.docs.map((doc) => Location.fromSnapshot(doc)).toList();
       locations.sort((a, b) {
         final orderCompare = a.sortOrder.compareTo(b.sortOrder);
@@ -34,15 +37,37 @@ class LocationService {
     });
   }
 
-  // Add a new location to organization
-  Future<void> addLocation(String name, String organizationId, {int? sortOrder}) async {
+  // Add a new location, scoped to the given area, to organization
+  Future<void> addLocation(String name, String organizationId, String areaId, {int? sortOrder}) async {
     if (_firestore == null) throw Exception("Backend not available");
     await _firestore!.collection(_collection).add({
       'name': name,
       'organizationId': organizationId,
+      'areaId': areaId,
       'createdAt': FieldValue.serverTimestamp(),
       if (sortOrder != null) 'sortOrder': sortOrder,
     });
+  }
+
+  // Self-heals locations created before the Area feature shipped by assigning
+  // them to the organization's default ("Unassigned") area.
+  Future<void> backfillLocationsMissingArea(String organizationId, String defaultAreaId) async {
+    if (_firestore == null) return;
+    final snapshot = await _firestore!
+        .collection(_collection)
+        .where('organizationId', isEqualTo: organizationId)
+        .get();
+
+    final batch = _firestore!.batch();
+    var needsCommit = false;
+    for (final doc in snapshot.docs) {
+      final areaId = doc.data()['areaId'] as String?;
+      if (areaId == null || areaId.isEmpty) {
+        batch.update(doc.reference, {'areaId': defaultAreaId});
+        needsCommit = true;
+      }
+    }
+    if (needsCommit) await batch.commit();
   }
 
   // Delete a location
